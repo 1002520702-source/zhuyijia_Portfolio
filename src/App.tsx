@@ -13,7 +13,7 @@ import { TextScrambleWithHover } from './components/ui/text-scramble';
 import { LightboxProvider } from './components/code/LightboxContext';
 import { IframeLightbox } from './components/code/IframeLightbox';
 import { CustomCursor } from './components/CustomCursor';
-import { SmoothScroll } from './components/SmoothScroll';
+// import { SmoothScroll } from './components/SmoothScroll';  // 暂时去掉 Lenis 平滑滚动
 import { Preloader } from './components/Preloader';
 import { ScrollProgress } from './components/ScrollProgress';
 
@@ -47,7 +47,7 @@ function App() {
 
   return (
     <LightboxProvider>
-      <SmoothScroll />
+      {/* <SmoothScroll /> 平滑滚动已去掉（与原生滚轮和 ScrollProgress 拖动冲突） */}
       <CustomCursor />
       <ScrollProgress />
       <Preloader />

@@ -106,8 +106,8 @@ export function ScrollProgress() {
       onClick={handleTrackClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="fixed top-0 right-0 h-screen z-[80] transition-[width] duration-200 ease-out"
-      style={{ width: active ? '10px' : '4px' }}
+      className="fixed top-0 h-screen z-[80] transition-[width] duration-200 ease-out"
+      style={{ width: active ? '10px' : '4px', right: '10px' }}
       data-cursor="view"
     >
       {/* track 背景 */}
