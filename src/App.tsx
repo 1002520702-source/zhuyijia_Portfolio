@@ -10,6 +10,11 @@ import WorksIndexSection from './sections/WorksIndexSection';
 import WorkDetailSection from './sections/WorkDetailSection';
 import { DotGridBackground } from './components/ui/dot-grid-background';
 import { TextScrambleWithHover } from './components/ui/text-scramble';
+import { LightboxProvider } from './components/code/LightboxContext';
+import { IframeLightbox } from './components/code/IframeLightbox';
+import { CustomCursor } from './components/CustomCursor';
+import { SmoothScroll } from './components/SmoothScroll';
+import { Preloader } from './components/Preloader';
 
 import './App.css';
 
@@ -40,6 +45,11 @@ function App() {
   }, []);
 
   return (
+    <LightboxProvider>
+      <SmoothScroll />
+      <CustomCursor />
+      <Preloader />
+      <IframeLightbox />
     <div className="relative bg-[#D1D1CB] min-h-screen">
       {/* Dot Grid Background - 铺满整个页面，在最底层 */}
       <DotGridBackground containerClassName="bg-[#D1D1CB]" />
@@ -128,6 +138,7 @@ function App() {
         </footer>
       </main>
     </div>
+    </LightboxProvider>
   );
 }
 

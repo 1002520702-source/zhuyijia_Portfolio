@@ -28,6 +28,10 @@ pnpm-debug.log*
 # TS build cache
 *.tsbuildinfo
 
+# tsc -b composite emit byproducts (vite.config 编译出的 .js/.d.ts)
+vite.config.js
+vite.config.d.ts
+
 # Env files
 .env
 .env.local
@@ -35,3 +39,7 @@ pnpm-debug.log*
 
 # Claude Code
 .claude/
+
+# Local backups (not for git)
+_videos_original/
+_*_backup/

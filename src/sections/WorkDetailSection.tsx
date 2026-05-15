@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { TextScrambleWithHover } from '@/components/ui/text-scramble';
-import { VideoPlayer } from '@/components/ui/video-player';
+import { CodeWorksGrid } from '@/components/code/CodeWorksGrid';
+import { codeProjects } from '@/data/codeProjects';
+import { useLightbox } from '@/components/code/LightboxContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -24,10 +26,11 @@ interface Project {
   description: string;
   tools: string[];
   wide?: boolean;
-  modelUrl?: string;
-  videoUrl?: string;
-  bilibiliUrl?: string;
-  coverImage?: string;
+  modelUrl?: string;          // Sketchfab 3D 模型 iframe（保留原交互）
+  videoUrl?: string;          // 本地 mp4 — 用作 hover 预览
+  bilibiliEmbedUrl?: string;  // 点击 lightbox 嵌入的 Bilibili iframe URL（player.bilibili.com/...）
+  bilibiliUrl?: string;       // 跳转用外链（旧字段，C++游戏卡片）
+  coverImage?: string;        // 静态封面图；没有则用 video 第一帧
   textureMaps?: TextureMap[];
   awards?: Award[];
   stylizedImage?: { name: string; src: string };
@@ -200,9 +203,40 @@ function ProjectCard({
   onProjectClick?: (projectId: string) => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isInteracting, setIsInteracting] = useState(false);
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
+  const { open: openLightbox } = useLightbox();
+
+  // 视频卡片：hover 播放、leave 暂停归零
+  const handleMediaEnter = () => {
+    setIsHovered(true);
+    const v = videoRef.current;
+    if (v) v.play().catch(() => {});
+  };
+  const handleMediaLeave = () => {
+    setIsHovered(false);
+    const v = videoRef.current;
+    if (v) {
+      v.pause();
+      v.currentTime = 0.1;
+    }
+  };
+  // 视频元素 metadata 加载后定位到 0.1s 作为"封面"
+  const handleVideoMeta = () => {
+    const v = videoRef.current;
+    if (v && v.paused) v.currentTime = 0.1;
+  };
+
+  // 视频卡片点击：优先 bilibili 嵌入，fallback 用本地视频 URL 作为 iframe src（浏览器原生播放）
+  const handleMediaClick = () => {
+    if (project.bilibiliEmbedUrl) {
+      openLightbox({ url: project.bilibiliEmbedUrl, title: project.title, id: project.id });
+    } else if (project.videoUrl) {
+      openLightbox({ url: project.videoUrl, title: project.title, id: project.id });
+    }
+  };
 
   useEffect(() => {
     const card = cardRef.current;
@@ -268,12 +302,15 @@ function ProjectCard({
 
         {/* Media container */}
         <div
-          className={`w-full bg-[#1A1A1A]/5 border border-[#8A8A85]/20 relative overflow-hidden ${mediaAspect}`}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          className={`w-full bg-[#1A1A1A]/5 border border-[#8A8A85]/20 relative overflow-hidden ${mediaAspect}
+                      ${project.videoUrl ? 'cursor-pointer' : ''}`}
+          onMouseEnter={project.videoUrl ? handleMediaEnter : () => setIsHovered(true)}
+          onMouseLeave={project.videoUrl ? handleMediaLeave : () => setIsHovered(false)}
+          onClick={project.videoUrl ? handleMediaClick : undefined}
+          data-cursor={project.videoUrl ? 'view' : undefined}
         >
           {project.bilibiliUrl ? (
-            /* B站封面 + 外链 */
+            /* C++ 游戏卡：B站封面 + 外链跳转 */
             <a
               href={project.bilibiliUrl}
               target="_blank"
@@ -289,13 +326,11 @@ function ProjectCard({
               ) : (
                 <div className="absolute inset-0 bg-[#1A1A1A]/10" />
               )}
-              {/* Bilibili 跳转提示 */}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/bili:opacity-100 transition-opacity duration-300">
                 <span className="px-4 py-2 bg-[#FF3D00] text-white text-[11px] font-mono tracking-wider">
                   BILIBILI ↗
                 </span>
               </div>
-              {/* 常驻图标 */}
               <div className="absolute top-4 left-4 z-10">
                 <span className="px-3 py-1 bg-[#FF3D00] text-white text-[10px] font-mono tracking-wider">
                   BILIBILI
@@ -303,7 +338,36 @@ function ProjectCard({
               </div>
             </a>
           ) : project.videoUrl ? (
-            <VideoPlayer src={project.videoUrl} />
+            /* 视频卡：第一帧作为封面 + hover 播放预览 + 点击 lightbox */
+            <>
+              {/* 静态封面（如有） */}
+              {project.coverImage && (
+                <img
+                  src={project.coverImage}
+                  alt={project.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0"
+                />
+              )}
+              {/* video 元素：paused 时显示第一帧，hover 时 play */}
+              <video
+                ref={videoRef}
+                src={project.videoUrl}
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                onLoadedMetadata={handleVideoMeta}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300
+                            ${project.coverImage ? 'opacity-0 group-hover:opacity-100' : ''}`}
+              />
+              {/* 播放图标 — 提示这是可播放的视频 */}
+              <div
+                className={`absolute top-4 left-4 z-10 px-3 py-1 bg-[#FF3D00] text-white text-[10px] font-mono tracking-wider
+                            transition-opacity duration-300 ${isHovered ? 'opacity-0' : 'opacity-100'}`}
+              >
+                ▶ VIDEO
+              </div>
+            </>
           ) : project.modelUrl ? (
             <iframe
               title={project.title}
@@ -315,7 +379,6 @@ function ProjectCard({
               style={{ pointerEvents: isInteracting ? 'auto' : 'none' }}
             />
           ) : (
-            /* 占位 */
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="section-label text-[#8A8A85]/40">
                 {project.id.split('-').pop()}
@@ -586,18 +649,22 @@ function WorkCategorySection({
         </p>
       </div>
 
-      {/* Projects grid — wide cards span full width, others are 2-col */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-        {work.projects.map((project) => (
-          <ProjectCard key={project.id} project={project} onProjectClick={onProjectClick} />
-        ))}
-      </div>
+      {/* Projects grid — Code 区使用新组件，其他用 ProjectCard */}
+      {work.id === 'work-code' ? (
+        <CodeWorksGrid />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+          {work.projects.map((project) => (
+            <ProjectCard key={project.id} project={project} onProjectClick={onProjectClick} />
+          ))}
+        </div>
+      )}
 
       {/* Footer row */}
       <div className="mt-12 pt-8 border-t border-[#8A8A85]/20 flex justify-between items-center">
         <span className="section-label">
           <TextScrambleWithHover duration={0.5} speed={0.03} trigger={isInView}>
-            {String(work.projects.length) + ' Projects'}
+            {(work.id === 'work-code' ? codeProjects.length : work.projects.length) + ' Projects'}
           </TextScrambleWithHover>
         </span>
       </div>
@@ -622,6 +689,15 @@ function FilterBar({
   active: FilterKey;
   onChange: (key: FilterKey) => void;
 }) {
+  // 项目数量：从 workDetails 派生，Code 区使用 codeProjects
+  const counts: Record<FilterKey, number> = {
+    design: workDetails.find((w) => w.id === 'work-design')?.projects.length ?? 0,
+    game: workDetails.find((w) => w.id === 'work-game')?.projects.length ?? 0,
+    code: codeProjects.length,
+    all: 0,
+  };
+  counts.all = counts.design + counts.game + counts.code;
+
   return (
     <div className="px-4 sm:px-6 md:px-12 lg:px-24 py-6 md:py-8 border-b border-[#8A8A85]/20">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 sm:gap-6 flex-wrap">
@@ -634,6 +710,7 @@ function FilterBar({
           }`}
         >
           {label}
+          <span className="ml-1.5 text-[10px] opacity-60">({counts[key]})</span>
           {active === key && (
             <span className="absolute left-0 bottom-0 w-full h-[2px] bg-[#FF3D00]" />
           )}
