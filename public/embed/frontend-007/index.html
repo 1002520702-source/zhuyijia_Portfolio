@@ -1,25 +1,1872 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<title>frontend-007 — Placeholder</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:#D1D1CB;color:#1A1A1A;display:flex;align-items:center;justify-content:center;text-align:center}
-.wrap{padding:2rem;max-width:600px}
-h1{font-size:clamp(2rem,6vw,4rem);font-weight:700;color:#FF3D00;letter-spacing:-0.03em;margin-bottom:1rem}
-p{font-family:'JetBrains Mono',monospace;font-size:.875rem;color:#8A8A85;line-height:1.7;margin-bottom:1rem}
-code{background:#1A1A1A;color:#FF3D00;padding:.25rem .5rem;border-radius:.25rem;font-size:.8em}
-.footer{margin-top:2rem;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:#8A8A85}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS - 下一代智能创作平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* 复古终端配色 */
+            --terminal-bg: #1A1510;
+            --terminal-dark: #0D0B08;
+            --terminal-border: #2A2520;
+            --amber: #FFB000;
+            --amber-dim: #CC8800;
+            --amber-glow: rgba(255, 176, 0, 0.5);
+            --glitch-pink: #FF3366;
+            --pixel-green: #33FF00;
+            --text-primary: #E8DCC8;
+            --text-muted: #8B7E6A;
+            --scan-line: rgba(255, 176, 0, 0.03);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: auto;
+        }
+
+        body {
+            font-family: 'Courier Prime', monospace;
+            background: var(--terminal-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            padding-left: 100px;
+            padding-right: 100px;
+        }
+
+        .font-display {
+            font-family: 'Press Start 2P', cursive;
+            letter-spacing: 0.1em;
+        }
+
+        .font-tech {
+            font-family: 'VT323', monospace;
+            letter-spacing: 0.05em;
+        }
+
+        /* CRT扫描线效果 */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                var(--scan-line) 2px,
+                var(--scan-line) 4px
+            );
+            pointer-events: none;
+            z-index: 9998;
+            animation: scanlines 0.1s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
+
+        /* CRT屏幕曲率 */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(
+                ellipse at center,
+                transparent 0%,
+                transparent 70%,
+                rgba(0,0,0,0.4) 100%
+            );
+            pointer-events: none;
+            z-index: 9997;
+        }
+
+        /* Fullscreen 3D Canvas */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Scroll Content */
+        .scroll-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ===== TERMINAL BOOT SCREEN ===== */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--terminal-bg);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .terminal-window {
+            width: 600px;
+            max-width: 90vw;
+            border: 2px solid var(--amber);
+            background: var(--terminal-dark);
+            box-shadow:
+                0 0 20px var(--amber-glow),
+                inset 0 0 40px rgba(255,176,0,0.05);
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: var(--amber);
+            color: var(--terminal-dark);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+        }
+
+        .terminal-btns {
+            letter-spacing: 2px;
+        }
+
+        .terminal-body {
+            padding: 20px;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            color: var(--amber);
+            min-height: 200px;
+            line-height: 1.4;
+        }
+
+        .boot-text {
+            white-space: pre-wrap;
+        }
+
+        .boot-line {
+            margin-bottom: 8px;
+        }
+
+        .boot-line.success::before {
+            content: '[OK] ';
+            color: var(--pixel-green);
+        }
+
+        .boot-line.loading::before {
+            content: '[..] ';
+            color: var(--amber-dim);
+        }
+
+        .cursor-block {
+            display: inline-block;
+            width: 12px;
+            height: 20px;
+            background: var(--amber);
+            animation: cursor-blink 1s step-end infinite;
+            vertical-align: middle;
+            margin-left: 4px;
+        }
+
+        @keyframes cursor-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+            position: relative;
+        }
+
+        .terminal-box {
+            width: 100%;
+            max-width: 800px;
+            border: 2px solid var(--amber);
+            background: var(--terminal-dark);
+            box-shadow:
+                0 0 30px var(--amber-glow),
+                inset 0 0 60px rgba(255,176,0,0.03);
+        }
+
+        .terminal-content {
+            padding: 30px;
+        }
+
+        .ascii-logo {
+            font-family: 'Courier Prime', monospace;
+            font-size: 11px;
+            line-height: 1.2;
+            color: var(--amber);
+            text-shadow: 0 0 10px var(--amber-glow);
+            margin-bottom: 25px;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .typewriter-text {
+            font-family: 'VT323', monospace;
+            font-size: 26px;
+            color: var(--amber);
+            margin-bottom: 20px;
+        }
+
+        .hero-stats-terminal {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+            padding: 18px;
+            border: 1px dashed var(--amber-dim);
+        }
+
+        .stat-line {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .stat-label {
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+        }
+
+        .stat-value.amber {
+            color: var(--amber);
+            text-shadow: 0 0 10px var(--amber-glow);
+        }
+
+        .stat-value.green {
+            color: var(--pixel-green);
+        }
+
+        .pixel-btn {
+            display: inline-block;
+            padding: 16px 32px;
+            background: var(--terminal-dark);
+            border: 2px solid var(--amber);
+            color: var(--amber);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pixel-btn:hover {
+            background: var(--amber);
+            color: var(--terminal-dark);
+            box-shadow: 0 0 20px var(--amber-glow);
+        }
+
+        .pixel-btn:active {
+            transform: translateY(2px);
+        }
+
+        .scroll-hint {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 25px;
+        }
+
+        .scroll-hint span {
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--amber), transparent);
+            animation: scan 2s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0%, 100% { opacity: 0.3; transform: scaleY(0); transform-origin: top; }
+            50% { opacity: 1; transform: scaleY(1); }
+        }
+
+        /* ===== CARDS SECTION ===== */
+        .cards-section {
+            height: 400vh;
+            position: relative;
+        }
+
+        .cards-sticky {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-card {
+            position: absolute;
+            left: 8%;
+            top: 200px;
+            bottom: 200px;
+            width: min(650px, 80vw);
+            overflow-y: auto;
+            border: 2px solid var(--amber);
+            background: var(--terminal-dark);
+            transform: translate(0, 0) scale(0);
+            opacity: 0;
+            box-shadow: 0 0 30px var(--amber-glow);
+        }
+
+        /* Retro scrollbar for cards */
+        .feature-card::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .feature-card::-webkit-scrollbar-track {
+            background: var(--terminal-dark);
+            border-left: 1px solid var(--terminal-border);
+        }
+
+        .feature-card::-webkit-scrollbar-thumb {
+            background: var(--amber-dim);
+            border: 1px solid var(--amber);
+        }
+
+        .feature-card::-webkit-scrollbar-thumb:hover {
+            background: var(--amber);
+        }
+
+        .terminal-window-card .terminal-body {
+            padding: 20px;
+        }
+
+        .card-ascii-border {
+            font-family: 'Courier Prime', monospace;
+            font-size: 10px;
+            line-height: 1.4;
+            color: var(--amber);
+            margin-bottom: 12px;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .module-icon {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 20px;
+            color: var(--amber);
+            margin-bottom: 10px;
+        }
+
+        .module-title {
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            color: var(--amber);
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px var(--amber-glow);
+        }
+
+        .module-desc {
+            font-family: 'Courier Prime', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+
+        .tech-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 8px;
+            border: 1px solid var(--terminal-border);
+            background: rgba(255,176,0,0.05);
+        }
+
+        .spec-item {
+            font-family: 'VT323', monospace;
+            font-size: 13px;
+            color: var(--pixel-green);
+        }
+
+        .module-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--amber-dim);
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+        }
+
+        .metric-val {
+            color: var(--amber);
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--terminal-border);
+            padding: 12px;
+            margin: 15px 0;
+            font-family: 'Courier Prime', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .code-line {
+            color: var(--text-muted);
+        }
+
+        .code-comment {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .code-value {
+            color: var(--pixel-green);
+        }
+
+        .progress-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--amber-dim);
+        }
+
+        .progress-label {
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            color: var(--text-muted);
+            min-width: 60px;
+        }
+
+        .progress-track {
+            flex: 1;
+            height: 8px;
+            background: var(--terminal-border);
+            border: 1px solid var(--terminal-border);
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--pixel-green);
+            box-shadow: 0 0 10px var(--pixel-green);
+            transition: width 0.3s ease;
+        }
+
+        .progress-value {
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            color: var(--pixel-green);
+            min-width: 35px;
+            text-align: right;
+        }
+
+        .status-light {
+            width: 8px;
+            height: 8px;
+            background: var(--amber-dim);
+            border-radius: 50%;
+        }
+
+        .status-light.active {
+            background: var(--pixel-green);
+            box-shadow: 0 0 10px var(--pixel-green);
+            animation: status-blink 1s ease-in-out infinite;
+        }
+
+        @keyframes status-blink {
+            50% { opacity: 0.5; }
+        }
+
+        /* ===== FEATURES SECTION ===== */
+        .features-intro {
+            padding: 4rem 0 3rem;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            color: var(--amber-dim);
+            letter-spacing: 0.2em;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            color: var(--amber);
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px var(--amber-glow);
+            line-height: 1.6;
+        }
+
+        .section-desc {
+            font-family: 'Courier Prime', monospace;
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .terminal-divider {
+            font-family: 'Courier Prime', monospace;
+            font-size: 12px;
+            color: var(--amber-dim);
+            margin: 1rem 0;
+            opacity: 0.5;
+        }
+
+        .divider-line {
+            letter-spacing: 0;
+        }
+
+        .tech-tags {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .tech-tag {
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            color: var(--pixel-green);
+            border: 1px solid var(--pixel-green);
+            padding: 4px 12px;
+            background: rgba(51, 255, 0, 0.05);
+        }
+
+        /* ===== TECH SPECS SECTION ===== */
+        .tech-specs-section {
+            padding: 4rem 0;
+        }
+
+        .features-intro {
+            padding: 3rem 0;
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            color: var(--amber-dim);
+            letter-spacing: 0.2em;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            color: var(--amber);
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px var(--amber-glow);
+            line-height: 1.6;
+        }
+
+        .section-desc {
+            font-family: 'Courier Prime', monospace;
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--text-muted);
+        }
+
+        .tech-grid {
+            max-width: 900px;
+            margin: 0;
+            margin-left: 100px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            padding: 1rem;
+        }
+
+        .tech-card {
+            background: var(--terminal-dark);
+            border: 2px solid var(--terminal-border);
+            transition: all 0.2s;
+        }
+
+        .tech-card:hover {
+            border-color: var(--amber);
+            box-shadow: 0 0 20px var(--amber-glow);
+        }
+
+        .tech-card .terminal-header {
+            padding: 8px 10px;
+            font-size: 9px;
+        }
+
+        .tech-card .terminal-body {
+            padding: 16px;
+        }
+
+        .tech-card h3 {
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            color: var(--amber);
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px var(--amber-glow);
+        }
+
+        .tech-card p {
+            font-family: 'Courier Prime', monospace;
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text-primary);
+        }
+
+        /* ===== ROADMAP SECTION ===== */
+        .roadmap-section {
+            padding: 4rem 0;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2.5rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--amber-dim);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2.5rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.5rem;
+            top: 0.25rem;
+            width: 10px;
+            height: 10px;
+            background: var(--amber);
+            transform: translateX(-4px);
+            box-shadow: 0 0 10px var(--amber-glow);
+        }
+
+        .timeline-date {
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            color: var(--amber);
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .timeline-desc {
+            font-family: 'Courier Prime', monospace;
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* ===== CTA SECTION ===== */
+        .cta-section {
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .cta-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(0.875rem, 3vw, 1.25rem);
+            color: var(--amber);
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px var(--amber-glow);
+            line-height: 1.6;
+        }
+
+        .cta-subtitle {
+            font-family: 'Courier Prime', monospace;
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .download-btn {
+            position: relative;
+            padding: 1.25rem 2.5rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            color: var(--amber);
+            background: var(--terminal-dark);
+            border: 2px solid var(--amber);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 0 20px var(--amber-glow);
+        }
+
+        .download-btn:hover {
+            background: var(--amber);
+            color: var(--terminal-dark);
+        }
+
+        .platform-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .platform {
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            padding: 2rem 0;
+            text-align: center;
+            border-top: 1px solid var(--terminal-border);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links a {
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--amber);
+            text-shadow: 0 0 10px var(--amber-glow);
+        }
+
+        .copyright {
+            font-family: 'Courier Prime', monospace;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* ===== GLITCH EFFECTS ===== */
+        .glitch {
+            position: relative;
+            animation: glitch-skew 3s infinite;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch::before {
+            color: var(--glitch-pink);
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+            clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+        }
+
+        .glitch::after {
+            color: var(--pixel-green);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+            clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+        }
+
+        @keyframes glitch-anim-1 {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-2px); }
+            40% { transform: translateX(2px); }
+            60% { transform: translateX(-1px); }
+            80% { transform: translateX(1px); }
+        }
+
+        @keyframes glitch-anim-2 {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(2px); }
+            40% { transform: translateX(-2px); }
+            60% { transform: translateX(1px); }
+            80% { transform: translateX(-1px); }
+        }
+
+        @keyframes glitch-skew {
+            0%, 100% { transform: skew(0); }
+            2% { transform: skew(-1deg); }
+            4% { transform: skew(0); }
+            96% { transform: skew(0); }
+            98% { transform: skew(1deg); }
+        }
+
+        /* Random text flicker */
+        .flicker {
+            animation: flicker 4s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 1; }
+            52% { opacity: 0.8; }
+            54% { opacity: 1; }
+            90% { opacity: 1; }
+            92% { opacity: 0.9; }
+            94% { opacity: 1; }
+        }
+
+        /* ===== FONT UTILITIES ===== */
+        .font-display {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .font-tech {
+            font-family: 'VT323', monospace;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            body {
+                padding-left: 50px;
+                padding-right: 50px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            .hero-stats-terminal {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .ascii-logo {
+                font-size: 7px;
+            }
+            .typewriter-text {
+                font-size: 20px;
+            }
+            .stat-value {
+                font-size: 9px;
+            }
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+            .tech-card h3 {
+                font-size: 10px;
+            }
+            .timeline-title {
+                font-size: 10px;
+            }
+            .footer-links {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+            .timeline {
+                padding-left: 1.5rem;
+            }
+            .timeline::before {
+                left: 0;
+            }
+            .timeline-item::before {
+                left: -1.5rem;
+                width: 8px;
+                height: 8px;
+            }
+            .pixel-btn, .download-btn {
+                font-size: 9px;
+                padding: 12px 20px;
+            }
+            .card-ascii-border {
+                font-size: 8px;
+            }
+            .code-block {
+                font-size: 10px;
+                padding: 8px;
+            }
+            .feature-card {
+                width: min(480px, 92vw);
+                left: 4%;
+                top: 150px;
+                bottom: 150px;
+            }
+            .tech-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .tech-tags {
+                gap: 0.5rem;
+            }
+            .tech-tag {
+                font-size: 12px;
+                padding: 3px 8px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="wrap">
-<h1>前端项目 007</h1>
-<p>把项目文件（HTML/CSS/JS/assets）放进：</p>
-<p><code>public/embed/frontend-007/</code></p>
-<p>覆盖这个 <code>index.html</code> 即可。</p>
-<div class="footer">PLACEHOLDER · REPLACE ME</div>
-</div>
+    <!-- Terminal Boot Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <span class="terminal-title">NEXUS_OS_BOOT.exe</span>
+                <span class="terminal-btns">[_][X]</span>
+            </div>
+            <div class="terminal-body" id="boot-terminal">
+                <div class="boot-text" id="boot-text"></div>
+                <div class="cursor-block"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- Scroll Content -->
+    <div class="scroll-content">
+        <!-- HERO SECTION -->
+        <section class="hero-section">
+            <div class="terminal-box">
+                <div class="terminal-header">
+                    <span class="terminal-title">NEXUS_CREATIVE_SUITE.exe</span>
+                    <span class="terminal-btns">v2.0</span>
+                </div>
+                <div class="terminal-content">
+                    <pre class="ascii-logo">
+╔═══════════════════════════════════════════╗
+║                                           ║
+║  ███╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗  ║
+║  ████╗  ██║██╔════╝╚██╗██╔╝██║   ██║██╔════╝  ║
+║  ██╔██╗ ██║█████╗   ╚███╔╝ ██║   ██║███████╗  ║
+║  ██║╚██╗██║██╔══╝   ██╔██╗ ██║   ██║╚════██║  ║
+║  ██║ ╚████║███████╗██╔╝ ██╗╚██████╔╝███████║  ║
+║  ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝  ║
+║                                           ║
+╚═══════════════════════════════════════════╝
+                    </pre>
+                    <div class="typewriter-text" id="hero-type">
+                        > 初始化创意引擎...
+                    </div>
+                    <div class="hero-stats-terminal">
+                        <div class="stat-line">
+                            <span class="stat-label">用户数量:</span>
+                            <span class="stat-value amber">10,000,000+</span>
+                        </div>
+                        <div class="stat-line">
+                            <span class="stat-label">运行稳定:</span>
+                            <span class="stat-value green">99.9%</span>
+                        </div>
+                        <div class="stat-line">
+                            <span class="stat-label">用户评分:</span>
+                            <span class="stat-value amber">4.9/5.0</span>
+                        </div>
+                    </div>
+                    <button class="pixel-btn" id="start-btn">
+                        <span class="btn-text">[ 启动系统 ]</span>
+                    </button>
+                    <div class="scroll-hint">
+                        <span>向下滚动继续...</span>
+                        <div class="scroll-line"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURES INTRO -->
+        <section class="features-intro">
+            <div class="terminal-divider">
+                <span class="divider-line">═══════════════════════════════════════</span>
+            </div>
+            <p class="section-label">[ 核心特性 ]</p>
+            <h2 class="section-title">重新定义创作体验</h2>
+            <p class="section-desc">
+                NEXUS 将量子计算、神经网络的强大能力与直观的交互设计相结合，
+                为创作者提供前所未有的工具与可能性。
+            </p>
+            <div class="tech-tags">
+                <span class="tech-tag">QUANTUM_SYNC</span>
+                <span class="tech-tag">NEURAL_LINK</span>
+                <span class="tech-tag">INFINITE_CANVAS</span>
+            </div>
+            <div class="terminal-divider">
+                <span class="divider-line">═══════════════════════════════════════</span>
+            </div>
+        </section>
+
+        <!-- CARDS SECTION -->
+        <section class="cards-section" id="cards-section">
+            <div class="cards-sticky">
+                <!-- Card 1: Quantum Sync -->
+                <div class="feature-card terminal-window-card" id="card-1" data-index="0">
+                    <div class="terminal-header">
+                        <span class="terminal-title">MODULE_01:QUANTUM_SYNC.exe</span>
+                        <span class="status-light active"></span>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="card-ascii-border">
+┌─────────────────────────────────────────┐
+│  [⚡] 量子同步引擎 v2.4                 │
+└─────────────────────────────────────────┘
+                        </div>
+                        <p class="module-desc">
+                            基于分布式量子计算架构的实时协作系统。
+                            支持千人级并发编辑，延迟低于 10ms。
+                        </p>
+                        <div class="tech-specs">
+                            <span class="spec-item">WebRTC:OK</span>
+                            <span class="spec-item">QUIC:OK</span>
+                            <span class="spec-item">AES-256:OK</span>
+                            <span class="spec-item">EDGE:OK</span>
+                            <span class="spec-item">CDN:OK</span>
+                        </div>
+                        <div class="code-block">
+                            <div class="code-line"><span class="code-comment">// 同步协议状态</span></div>
+                            <div class="code-line">latency: <span class="code-value">8ms</span></div>
+                            <div class="code-line">sync_rate: <span class="code-value">144Hz</span></div>
+                            <div class="code-line">conflict_res: <span class="code-value">CRDT</span></div>
+                        </div>
+                        <div class="module-metrics">
+                            <div class="metric-row">
+                                <span>延迟:</span>
+                                <span class="metric-val"><10ms</span>
+                            </div>
+                            <div class="metric-row">
+                                <span>并发:</span>
+                                <span class="metric-val">∞</span>
+                            </div>
+                            <div class="metric-row">
+                                <span>节点:</span>
+                                <span class="metric-val">50+</span>
+                            </div>
+                            <div class="metric-row">
+                                <span>可用性:</span>
+                                <span class="metric-val">99.99%</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-label">系统负载</div>
+                            <div class="progress-track">
+                                <div class="progress-fill" style="width: 42%"></div>
+                            </div>
+                            <div class="progress-value">42%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Neural Interface -->
+                <div class="feature-card terminal-window-card" id="card-2" data-index="1">
+                    <div class="terminal-header">
+                        <span class="terminal-title">MODULE_02:NEURAL_LINK.exe</span>
+                        <span class="status-light active"></span>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="card-ascii-border">
+┌─────────────────────────────────────────┐
+│  [◉] 神经交互系统 v1.8                 │
+└─────────────────────────────────────────┘
+                        </div>
+                        <p class="module-desc">
+                            深度学习驱动的意图识别引擎。
+                            通过手势、语音理解创作意图，想法直接转化为作品。
+                        </p>
+                        <div class="tech-specs">
+                            <span class="spec-item">VISION:OK</span>
+                            <span class="spec-item">NLP:OK</span>
+                            <span class="spec-item">GESTURE:OK</span>
+                            <span class="spec-item">VOICE:OK</span>
+                            <span class="spec-item">BRAIN:OK</span>
+                        </div>
+                        <div class="code-block">
+                            <div class="code-line"><span class="code-comment">// AI 模型状态</span></div>
+                            <div class="code-line">model: <span class="code-value">GPT-4o-NEXUS</span></div>
+                            <div class="code-line">params: <span class="code-value">1.8T</span></div>
+                            <div class="code-line">inference: <span class="code-value">FP16</span></div>
+                        </div>
+                        <div class="module-metrics">
+                            <div class="metric-row">
+                                <span>识别率:</span>
+                                <span class="metric-val">99.7%</span>
+                            </div>
+                            <div class="metric-row">
+                                <span>响应:</span>
+                                <span class="metric-val">50ms</span>
+                            </div>
+                            <div class="metric-row">
+                                <span>模型:</span>
+                                <span class="metric-val">v2.4</span>
+                            </div>
+                            <div class="metric-row">
+                                <span>语言:</span>
+                                <span class="metric-val">89+</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-label">AI 算力</div>
+                            <div class="progress-track">
+                                <div class="progress-fill" style="width: 78%"></div>
+                            </div>
+                            <div class="progress-value">78%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Infinite Canvas -->
+                <div class="feature-card terminal-window-card" id="card-3" data-index="2">
+                    <div class="terminal-header">
+                        <span class="terminal-title">MODULE_03:INFINITE.exe</span>
+                        <span class="status-light active"></span>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="card-ascii-border">
+┌─────────────────────────────────────────┐
+│  [∞] 无限画布 3.0                       │
+└─────────────────────────────────────────┘
+                        </div>
+                        <p class="module-desc">
+                            无边界的 3D 创作空间。
+                            从像素级细节到星球级场景无缝缩放，AI辅助生成材质动画。
+                        </p>
+                        <div class="tech-specs">
+                            <span class="spec-item">RAYTRACE:OK</span>
+                            <span class="spec-item">AI_GEN:OK</span>
+                            <span class="spec-item">VOLUME:OK</span>
+                            <span class="spec-item">PBR:OK</span>
+                            <span class="spec-item">HDR:OK</span>
+                        </div>
+                        <div class="code-block">
+                            <div class="code-line"><span class="code-comment">// 渲染管线</span></div>
+                            <div class="code-line">backend: <span class="code-value">WebGPU+Vulkan</span></div>
+                            <div class="code-line">gi: <span class="code-value">Real-time</span></div>
+                            <div class="code-line">scale: <span class="code-value">10^12:1</span></div>
+                        </div>
+                        <div class="module-metrics">
+                            <div class="metric-row">
+                                <span>纹理:</span>
+                                <span class="metric-val">8K</span>
+                            </div>
+                            <div class="metric-row">
+                                <span>渲染:</span>
+                                <span class="metric-val">60fps</span>
+                            </div>
+                            <div class="metric-row">
+                                <span>多边形:</span>
+                                <span class="metric-val">100M+</span>
+                            </div>
+                            <div class="metric-row">
+                                <span>色彩:</span>
+                                <span class="metric-val">10bit</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-label">GPU 占用</div>
+                            <div class="progress-track">
+                                <div class="progress-fill" style="width: 65%"></div>
+                            </div>
+                            <div class="progress-value">65%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TECH SPECS SECTION -->
+        <section class="tech-specs-section">
+            <div class="features-intro">
+                <p class="section-label">技术规格</p>
+                <h2 class="section-title">为专业而生</h2>
+            </div>
+            <div class="tech-grid">
+                <div class="tech-card terminal-window">
+                    <div class="terminal-header">
+                        <span class="terminal-title">PERFORMANCE.cfg</span>
+                        <span class="terminal-btns">[R]</span>
+                    </div>
+                    <div class="terminal-body">
+                        <h3>> 极致性能</h3>
+                        <p>基于 WebGPU 的并行计算架构，充分利用 GPU 算力。支持 8K 纹理实时预览，百万级多边形场景流畅编辑。</p>
+                    </div>
+                </div>
+                <div class="tech-card terminal-window">
+                    <div class="terminal-header">
+                        <span class="terminal-title">SECURITY.cfg</span>
+                        <span class="terminal-btns">[L]</span>
+                    </div>
+                    <div class="terminal-body">
+                        <h3>> 企业级安全</h3>
+                        <p>SOC 2 Type II 认证，AES-256 端到端加密。支持私有化部署，满足金融、医疗等行业合规要求。</p>
+                    </div>
+                </div>
+                <div class="tech-card terminal-window">
+                    <div class="terminal-header">
+                        <span class="terminal-title">ECOSYSTEM.cfg</span>
+                        <span class="terminal-btns">[P]</span>
+                    </div>
+                    <div class="terminal-body">
+                        <h3>> 开放生态</h3>
+                        <p>完善的插件 API 与 SDK，支持 Blender、Maya、C4D 等主流工具导入导出。Git 版本控制集成。</p>
+                    </div>
+                </div>
+                <div class="tech-card terminal-window">
+                    <div class="terminal-header">
+                        <span class="terminal-title">CLOUD_SYNC.cfg</span>
+                        <span class="terminal-btns">[C]</span>
+                    </div>
+                    <div class="terminal-body">
+                        <h3>> 云端协同</h3>
+                        <p>自动云端备份与版本管理，支持跨设备无缝切换。离线模式保证无网络环境下的完整功能。</p>
+                    </div>
+                </div>
+                <div class="tech-card terminal-window">
+                    <div class="terminal-header">
+                        <span class="terminal-title">AI_MODULE.cfg</span>
+                        <span class="terminal-btns">[A]</span>
+                    </div>
+                    <div class="terminal-body">
+                        <h3>> AI 助手</h3>
+                        <p>内置 GPT-4 与 Stable Diffusion，智能生成文案、材质、概念图。支持自定义模型训练。</p>
+                    </div>
+                </div>
+                <div class="tech-card terminal-window">
+                    <div class="terminal-header">
+                        <span class="terminal-title">PLATFORM.cfg</span>
+                        <span class="terminal-btns">[M]</span>
+                    </div>
+                    <div class="terminal-body">
+                        <h3>> 全平台覆盖</h3>
+                        <p>Web、Windows、macOS、iPad、Vision Pro 全平台原生支持。触控、键鼠、手柄多种交互方式。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ROADMAP SECTION -->
+        <section class="roadmap-section">
+            <div class="features-intro">
+                <p class="section-label">产品路线图</p>
+                <h2 class="section-title">持续进化</h2>
+            </div>
+            <div class="terminal-box" style="max-width: 800px; margin: 0 auto;">
+                <div class="terminal-header">
+                    <span class="terminal-title">ROADMAP.log</span>
+                    <span class="terminal-btns">[-][X]</span>
+                </div>
+                <div class="terminal-body" style="padding: 25px;">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date">[2024 Q4]</div>
+                            <div class="timeline-title">> NEXUS 2.0 正式发布</div>
+                            <div class="timeline-desc">全新量子同步引擎、AI 助手 2.0、Vision Pro 原生支持</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">[2025 Q1]</div>
+                            <div class="timeline-title">> 协作空间 3D 化</div>
+                            <div class="timeline-desc">虚拟现实协作空间、实时语音交流、虚拟形象系统</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">[2025 Q2]</div>
+                            <div class="timeline-title">> AI 生成器升级</div>
+                            <div class="timeline-desc">视频生成、3D 模型生成、智能动画系统</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">[2025 Q3]</div>
+                            <div class="timeline-title">> 社区市场</div>
+                            <div class="timeline-desc">创作者资产市场、插件商店、教程生态系统</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA SECTION -->
+        <section class="cta-section">
+            <div class="terminal-box" style="max-width: 600px; margin: 0 auto;">
+                <div class="terminal-header">
+                    <span class="terminal-title">INSTALL.exe</span>
+                    <span class="terminal-btns">[*]</span>
+                </div>
+                <div class="terminal-content" style="text-align: center;">
+                    <div class="typewriter-text" style="margin-bottom: 15px;">> 准备安装 NEXUS 2.0...</div>
+                    <h2 class="cta-title" style="margin-bottom: 1rem;">开启未来创作</h2>
+                    <p class="cta-subtitle" style="margin-bottom: 2rem;">
+                        加入 1000 万创作者社区，体验下一代创作平台。<br>
+                        免费开始使用，专业版仅需 $19/月。
+                    </p>
+                    <button class="download-btn" id="download-btn">
+                        [ 立即免费下载 ]
+                    </button>
+                    <div class="platform-icons">
+                        <span class="platform">macOS</span>
+                        <span class="platform">Windows</span>
+                        <span class="platform">iPad</span>
+                        <span class="platform">Web</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="#">产品文档</a>
+                <a href="#">API 参考</a>
+                <a href="#">社区论坛</a>
+                <a href="#">隐私政策</a>
+                <a href="#">联系我们</a>
+            </div>
+            <p class="copyright">© 2024 NEXUS Inc. 保留所有权利。</p>
+        </footer>
+    </div>
+
+    <script>
+        // THREE.JS 3D SCENE
+        let threeJsFailed = false;
+        let isHoveringCard = false;
+        let dodecahedron, wireframe, glow, camera, renderer;
+        let dodecahedronGroup; // Group for position/scale control
+        let isLoaded = false;
+
+        try {
+            const scene = new THREE.Scene();
+            scene.background = null; // Transparent to show CSS background
+
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 6;
+
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                alpha: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x00D4FF, 0.3);
+            scene.add(ambientLight);
+
+            const mainLight = new THREE.DirectionalLight(0x00FFF5, 1);
+            mainLight.position.set(5, 5, 5);
+            scene.add(mainLight);
+
+            const purpleLight = new THREE.PointLight(0xB829DD, 0.8, 20);
+            purpleLight.position.set(-5, -5, 3);
+            scene.add(purpleLight);
+
+            const pinkLight = new THREE.PointLight(0xFF006E, 0.6, 15);
+            pinkLight.position.set(3, -3, 4);
+            scene.add(pinkLight);
+
+            // Create a group to control position and scale together
+            dodecahedronGroup = new THREE.Group();
+            scene.add(dodecahedronGroup);
+
+            // Create pixel particles background
+            const particleCount = 150;
+            const particleGeometry = new THREE.BufferGeometry();
+            const particlePositions = new Float32Array(particleCount * 3);
+            const particleOriginalPositions = new Float32Array(particleCount * 3);
+            const particleSizes = new Float32Array(particleCount);
+
+            for (let i = 0; i < particleCount; i++) {
+                const x = (Math.random() - 0.5) * 20;
+                const y = (Math.random() - 0.5) * 20;
+                const z = (Math.random() - 0.5) * 10 - 5;
+
+                particlePositions[i * 3] = x;
+                particlePositions[i * 3 + 1] = y;
+                particlePositions[i * 3 + 2] = z;
+
+                particleOriginalPositions[i * 3] = x;
+                particleOriginalPositions[i * 3 + 1] = y;
+                particleOriginalPositions[i * 3 + 2] = z;
+
+                particleSizes[i] = Math.random() * 3 + 1;
+            }
+
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+
+            // Create pixel-like particles using squares
+            const particleMaterial = new THREE.PointsMaterial({
+                color: 0xFFB000,
+                size: 0.08,
+                sizeAttenuation: true,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particles = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particles);
+
+            // Store for animation
+            window.pixelParticles = {
+                mesh: particles,
+                originalPositions: particleOriginalPositions,
+                positions: particlePositions,
+                count: particleCount,
+                mouseInfluence: new THREE.Vector2(0, 0)
+            };
+
+            // Create Floppy Disk 3D Model
+            const floppyGroup = new THREE.Group();
+            dodecahedronGroup.add(floppyGroup);
+
+            // Disk body (square) - dark brown-black plastic - smaller size
+            const diskGeometry = new THREE.BoxGeometry(1.5, 1.5, 0.12);
+            const diskMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0x1A1510,
+                metalness: 0.1,
+                roughness: 0.8,
+                clearcoat: 0.2
+            });
+            const disk = new THREE.Mesh(diskGeometry, diskMaterial);
+            floppyGroup.add(disk);
+
+            // Metal slider (top right) - scaled down
+            const sliderGeometry = new THREE.BoxGeometry(0.6, 0.45, 0.15);
+            const sliderMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0x888888,
+                metalness: 0.9,
+                roughness: 0.2
+            });
+            const slider = new THREE.Mesh(sliderGeometry, sliderMaterial);
+            slider.position.set(0.38, 0.45, 0.04);
+            floppyGroup.add(slider);
+
+            // Label area - amber colored label - scaled down
+            const labelGeometry = new THREE.PlaneGeometry(1.2, 0.75);
+            const labelMaterial = new THREE.MeshBasicMaterial({
+                color: 0xFFB000,
+                transparent: true,
+                opacity: 0.9
+            });
+            const label = new THREE.Mesh(labelGeometry, labelMaterial);
+            label.position.set(0, -0.22, 0.07);
+            floppyGroup.add(label);
+
+            // Write-protect notch (bottom left corner cut) - scaled down
+            const notchGeometry = new THREE.BoxGeometry(0.22, 0.11, 0.13);
+            const notchMaterial = new THREE.MeshBasicMaterial({ color: 0x0D0B08 });
+            const notch = new THREE.Mesh(notchGeometry, notchMaterial);
+            notch.position.set(-0.52, -0.6, 0);
+            floppyGroup.add(notch);
+
+            // Read/write LED indicator - green LED - scaled down
+            const ledGeometry = new THREE.CircleGeometry(0.06, 16);
+            const ledMaterial = new THREE.MeshBasicMaterial({
+                color: 0x33FF00,
+                transparent: true,
+                opacity: 0.3
+            });
+            const led = new THREE.Mesh(ledGeometry, ledMaterial);
+            led.position.set(-0.45, 0.45, 0.08);
+            floppyGroup.add(led);
+
+            // Store references for animation
+            dodecahedron = floppyGroup;
+            wireframe = led; // Reuse wireframe variable for LED
+
+            // Remove glow effect for cleaner retro look
+            glow = null;
+
+            // Set initial position (top-left) and scale
+            function updateDodecahedronPosition() {
+                // Convert screen coordinates to world coordinates
+                const vector = new THREE.Vector3();
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+
+                // Top-left position in screen coordinates (-1, 1 in NDC)
+                vector.set(-0.85, 0.85, 0.5); // Slightly inset from corner
+                vector.unproject(camera);
+
+                const dir = vector.sub(camera.position).normalize();
+                const distance = -camera.position.z / dir.z;
+                const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+
+                return pos;
+            }
+
+            // Initialize position to top-left
+            const initialPos = updateDodecahedronPosition();
+            dodecahedronGroup.position.copy(initialPos);
+            dodecahedronGroup.scale.set(0.35, 0.35, 0.35);
+
+            // Mouse tracking
+            const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+            document.addEventListener('mousemove', (e) => {
+                mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Smooth mouse interpolation
+                mouse.x += (mouse.targetX - mouse.x) * 0.05;
+                mouse.y += (mouse.targetY - mouse.y) * 0.05;
+
+                if (!isHoveringCard && isLoaded) {
+                    // Add subtle mouse following rotation
+                    const targetRotX = mouse.y * 0.3;
+                    const targetRotY = mouse.x * 0.3;
+
+                    dodecahedron.rotation.x += (targetRotX - dodecahedron.rotation.x) * 0.05;
+                    dodecahedron.rotation.y += (targetRotY - dodecahedron.rotation.y) * 0.05;
+                }
+
+                dodecahedron.rotation.z += 0.001;
+
+                // LED blinking effect (simulating disk read/write)
+                if (wireframe) {
+                    const time = Date.now() * 0.001;
+                    wireframe.material.opacity = 0.3 + Math.sin(time * 10) * 0.2 + Math.random() * 0.3;
+                }
+
+                // Animate pixel particles with mouse interaction
+                if (window.pixelParticles) {
+                    const positions = window.pixelParticles.mesh.geometry.attributes.position.array;
+                    const originals = window.pixelParticles.originalPositions;
+                    const pCount = window.pixelParticles.count;
+                    const time = Date.now() * 0.001;
+
+                    // Convert mouse position to world space for particle influence
+                    const mouseWorldX = mouse.x * 8;
+                    const mouseWorldY = mouse.y * 6;
+
+                    for (let i = 0; i < pCount; i++) {
+                        const i3 = i * 3;
+                        const ox = originals[i3];
+                        const oy = originals[i3 + 1];
+                        const oz = originals[i3 + 2];
+
+                        // Calculate distance to mouse
+                        const dx = ox - mouseWorldX;
+                        const dy = oy - mouseWorldY;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        // Mouse attraction/repulsion effect
+                        const influenceRadius = 4;
+                        const maxOffset = 1.5;
+
+                        if (dist < influenceRadius) {
+                            const force = (1 - dist / influenceRadius) * maxOffset;
+                            const angle = Math.atan2(dy, dx);
+                            // Particles are attracted to mouse
+                            positions[i3] = ox - Math.cos(angle) * force;
+                            positions[i3 + 1] = oy - Math.sin(angle) * force;
+                        } else {
+                            // Return to original position with easing
+                            positions[i3] += (ox - positions[i3]) * 0.03;
+                            positions[i3 + 1] += (oy - positions[i3 + 1]) * 0.03;
+                        }
+
+                        // Add subtle floating motion
+                        positions[i3 + 2] = oz + Math.sin(time + i * 0.1) * 0.2;
+                    }
+
+                    window.pixelParticles.mesh.geometry.attributes.position.needsUpdate = true;
+                    window.pixelParticles.mesh.rotation.y = time * 0.02;
+                }
+
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Loading complete handler
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+                isLoaded = true;
+            }, 5000); // Extended for boot sequence
+
+            // Typewriter effect for boot text
+            function typeWriter(element, text, speed = 30) {
+                return new Promise((resolve) => {
+                    let i = 0;
+                    element.textContent = '';
+                    function type() {
+                        if (i < text.length) {
+                            element.textContent += text.charAt(i);
+                            i++;
+                            setTimeout(type, speed);
+                        } else {
+                            resolve();
+                        }
+                    }
+                    type();
+                });
+            }
+
+            // Boot sequence
+            const bootMessages = [
+                { text: 'NEXUS_OS v2.0 LOADING...', status: 'loading' },
+                { text: '> 检查系统完整性...', status: 'success' },
+                { text: '> 加载核心模块...', status: 'success' },
+                { text: '> 初始化图形引擎...', status: 'success' },
+                { text: '> 连接服务器...', status: 'success' },
+                { text: '> 系统就绪。', status: 'success' }
+            ];
+
+            async function runBootSequence() {
+                const bootText = document.getElementById('boot-text');
+
+                for (const msg of bootMessages) {
+                    const line = document.createElement('div');
+                    line.className = `boot-line ${msg.status}`;
+                    bootText.appendChild(line);
+                    await typeWriter(line, msg.text, 30);
+                    await new Promise(r => setTimeout(r, 400));
+                }
+            }
+
+            runBootSequence();
+
+        } catch (e) {
+            console.warn('Three.js failed:', e);
+            threeJsFailed = true;
+            document.getElementById('canvas-container').style.display = 'none';
+            document.getElementById('loading-screen').classList.add('hidden');
+        }
+
+        // GSAP SCROLL ANIMATIONS
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Dodecahedron scroll animation: top-left to center, scale 0.5 to 1
+        if (!threeJsFailed && dodecahedronGroup) {
+            // Calculate positions
+            function getTopLeftPos() {
+                const vector = new THREE.Vector3(-0.85, 0.85, 0.5);
+                vector.unproject(camera);
+                const dir = vector.sub(camera.position).normalize();
+                const distance = -camera.position.z / dir.z;
+                return camera.position.clone().add(dir.multiplyScalar(distance));
+            }
+
+            function getRightPos() {
+                const vector = new THREE.Vector3(0.42, 0, 0.5); // 往左移动约1/3屏幕
+                vector.unproject(camera);
+                const dir = vector.sub(camera.position).normalize();
+                const distance = -camera.position.z / dir.z;
+                return camera.position.clone().add(dir.multiplyScalar(distance));
+            }
+
+            const startPos = getTopLeftPos();
+            const endPos = getRightPos();
+
+            // Create scroll animation for dodecahedron
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: '.hero-section',
+                    start: 'top top',
+                    end: '+=150%',
+                    scrub: 1,
+                    onUpdate: (self) => {
+                        const progress = self.progress;
+
+                        // Interpolate position
+                        const currentPos = new THREE.Vector3().lerpVectors(startPos, endPos, progress);
+                        dodecahedronGroup.position.copy(currentPos);
+
+                        // Interpolate scale (0.35 to 2.0)
+                        const currentScale = 0.35 + (progress * 1.65);
+                        dodecahedronGroup.scale.set(currentScale, currentScale, currentScale);
+                    }
+                }
+            });
+        }
+
+        // Card positions - left side with bottom 200px
+        const cardPositions = [
+            { x: 0, y: 0, rotateX: -2, rotateY: 3 },
+            { x: 0, y: 0, rotateX: 2, rotateY: -3 },
+            { x: 0, y: 0, rotateX: -1, rotateY: 0 }
+        ];
+
+        // Cards scroll animation - starts after dodecahedron reaches right side
+        ScrollTrigger.create({
+            trigger: '#cards-section',
+            start: 'top 80%', // Start when cards section is 80% visible
+            end: 'bottom bottom',
+            scrub: 0.5,
+            onUpdate: (self) => {
+                const progress = self.progress;
+                const phase = Math.min(Math.floor(progress * 3), 2);
+
+                if (!threeJsFailed && dodecahedron) {
+                    // Base rotation when on right side + phase rotations
+                    const baseRotationX = 0;
+                    const baseRotationY = progress * Math.PI * 2; // Continuous rotation
+
+                    const rotations = [
+                        { x: 0.2, y: baseRotationY, z: 0 },
+                        { x: -0.1, y: baseRotationY + Math.PI * 2 / 3, z: 0 },
+                        { x: -0.1, y: baseRotationY - Math.PI * 2 / 3, z: 0 }
+                    ];
+
+                    gsap.to(dodecahedron.rotation, {
+                        x: rotations[phase].x,
+                        y: rotations[phase].y,
+                        z: rotations[phase].z,
+                        duration: 0.8,
+                        ease: "power2.out"
+                    });
+                }
+
+                [0, 1, 2].forEach((idx) => {
+                    const card = document.getElementById(`card-${idx + 1}`);
+                    const pos = cardPositions[idx];
+
+                    if (idx === phase) {
+                        gsap.to(card, {
+                            x: pos.x,
+                            y: 0,
+                            scale: 1,
+                            opacity: 1,
+                            rotateX: pos.rotateX,
+                            rotateY: pos.rotateY,
+                            duration: 0.7,
+                            ease: "elastic.out(1, 0.5)"
+                        });
+                    } else if (idx < phase) {
+                        gsap.to(card, {
+                            scale: 0.7,
+                            opacity: 0.2,
+                            filter: 'blur(8px)',
+                            duration: 0.5
+                        });
+                    } else {
+                        gsap.to(card, {
+                            x: 0,
+                            y: 0,
+                            scale: 0,
+                            opacity: 0,
+                            duration: 0.4
+                        });
+                    }
+                });
+            }
+        });
+
+        // Card hover effects
+        document.querySelectorAll('.feature-card').forEach((card) => {
+            card.addEventListener('mouseenter', () => isHoveringCard = true);
+            card.addEventListener('mouseleave', () => {
+                isHoveringCard = false;
+                const idx = parseInt(card.dataset.index);
+                const pos = cardPositions[idx];
+                gsap.to(card, {
+                    x: 0,
+                    y: 0,
+                    rotateX: pos.rotateX,
+                    rotateY: pos.rotateY,
+                    scale: 1,
+                    duration: 0.5
+                });
+            });
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -15;
+                const rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 15;
+                gsap.to(card, {
+                    rotateX: rotateX,
+                    rotateY: rotateY,
+                    duration: 0.3
+                });
+            });
+        });
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            if (!threeJsFailed) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+
+                // Recalculate positions after resize
+                ScrollTrigger.refresh();
+            }
+        });
+
+        // Download button ripple
+        document.getElementById('download-btn').addEventListener('click', function() {
+            gsap.to(this, { scale: 0.95, duration: 0.1, yoyo: true, repeat: 1 });
+        });
+    </script>
 </body>
 </html>

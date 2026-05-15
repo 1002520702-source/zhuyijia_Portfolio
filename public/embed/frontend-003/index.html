@@ -1,25 +1,1452 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<title>frontend-003 — Placeholder</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:#D1D1CB;color:#1A1A1A;display:flex;align-items:center;justify-content:center;text-align:center}
-.wrap{padding:2rem;max-width:600px}
-h1{font-size:clamp(2rem,6vw,4rem);font-weight:700;color:#FF3D00;letter-spacing:-0.03em;margin-bottom:1rem}
-p{font-family:'JetBrains Mono',monospace;font-size:.875rem;color:#8A8A85;line-height:1.7;margin-bottom:1rem}
-code{background:#1A1A1A;color:#FF3D00;padding:.25rem .5rem;border-radius:.25rem;font-size:.8em}
-.footer{margin-top:2rem;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:#8A8A85}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYNTH DASHBOARD | Memphis Design Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'pop-pink': '#FF1493',
+            'electric-cyan': '#00FFFF',
+            'lemon-yellow': '#FFF500',
+            'pitch-black': '#000000',
+          },
+          fontFamily: {
+            sans: ['Space Grotesk', 'sans-serif'],
+            display: ['Syne', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #000000;
+      color: #ffffff;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      margin: 0;
+    }
+    .polka-dots {
+      background-image: radial-gradient(circle, currentColor 2px, transparent 2px);
+      background-size: 12px 12px;
+    }
+    .wavy-lines {
+      background-image: repeating-linear-gradient(45deg, transparent, transparent 8px, currentColor 8px, currentColor 10px);
+    }
+    .shadow-brutal { box-shadow: 4px 4px 0px 0px #000000; }
+    .shadow-brutal-pink { box-shadow: 6px 6px 0px 0px #FF1493; }
+    .shadow-brutal-cyan { box-shadow: 6px 6px 0px 0px #00FFFF; }
+    .shadow-brutal-yellow { box-shadow: 6px 6px 0px 0px #FFF500; }
+    .border-brutal { border: 3px solid #000000; }
+    .border-brutal-thick { border: 4px solid #000000; }
+    .border-3 { border-width: 3px; }
+    .synth-panel {
+      background: #ffffff;
+      border: 3px solid #000000;
+      box-shadow: 6px 6px 0px 0px #000000;
+    }
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track {
+      background: #000000;
+      border-left: 3px solid #000000;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #FF1493;
+      border: 3px solid #000000;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: #00FFFF; }
+    ::selection {
+      background: #FF1493;
+      color: #ffffff;
+    }
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .animate-marquee { animation: marquee 20s linear infinite; }
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    @keyframes rotate-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes scanline {
+      0% { top: 0%; }
+      100% { top: 100%; }
+    }
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.95; }
+    }
+    @keyframes slide-in-left {
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slide-in-up {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes scale-in {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    @keyframes waveform {
+      0% { d: path('M0,150 Q200,50 400,150 T800,150'); }
+      50% { d: path('M0,150 Q200,250 400,150 T800,150'); }
+      100% { d: path('M0,150 Q200,50 400,150 T800,150'); }
+    }
+    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .animate-rotate-slow { animation: rotate-slow 20s linear infinite; }
+    .animate-float { animation: float 3s ease-in-out infinite; }
+    .animate-flicker { animation: flicker 0.5s ease-in-out; }
+    .animate-slide-in-left { animation: slide-in-left 0.5s ease-out forwards; }
+    .animate-slide-in-up { animation: slide-in-up 0.5s ease-out forwards; }
+    .animate-scale-in { animation: scale-in 0.5s ease-out forwards; }
+    .knob-container {
+      position: relative;
+      cursor: grab;
+    }
+    .knob-container:active { cursor: grabbing; }
+    .fader-track {
+      position: relative;
+      background: #000;
+      border: 3px solid #fff;
+      border-radius: 9999px;
+    }
+    .fader-handle {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      cursor: grab;
+      background: #fff;
+      border: 3px solid #000;
+    }
+    .fader-handle:active { cursor: grabbing; }
+    .page-transition {
+      animation: slide-in-up 0.3s ease-out;
+    }
+  </style>
 </head>
 <body>
-<div class="wrap">
-<h1>前端项目 003</h1>
-<p>把项目文件（HTML/CSS/JS/assets）放进：</p>
-<p><code>public/embed/frontend-003/</code></p>
-<p>覆盖这个 <code>index.html</code> 即可。</p>
-<div class="footer">PLACEHOLDER · REPLACE ME</div>
-</div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+    const { motion, AnimatePresence } = window.Motion;
+
+    // Utility Components
+    const DigitalClock = () => {
+      const [time, setTime] = useState(new Date().toLocaleTimeString('en-US', { hour12: false }));
+      useEffect(() => {
+        const interval = setInterval(() => {
+          setTime(new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        }, 1000);
+        return () => clearInterval(interval);
+      }, []);
+      return (
+        <div className="bg-black border-3 border-[#00FFFF] px-4 py-2 animate-slide-in-left" style={{animationDelay: '0.9s'}}>
+          <span className="text-[#00FFFF] font-mono text-lg font-bold">{time}</span>
+        </div>
+      );
+    };
+
+    const SystemStats = () => {
+      const [stats, setStats] = useState({ cpu: 45, memory: 62, network: 128 });
+      useEffect(() => {
+        const interval = setInterval(() => {
+          setStats({
+            cpu: Math.floor(Math.random() * 30) + 30,
+            memory: Math.floor(Math.random() * 20) + 50,
+            network: Math.floor(Math.random() * 50) + 100,
+          });
+        }, 2000);
+        return () => clearInterval(interval);
+      }, []);
+      return (
+        <div className="hidden md:flex items-center gap-3 bg-black/40 border-2 border-white/20 px-4 py-2 animate-slide-in-left" style={{animationDelay: '0.85s'}}>
+          {[
+            { label: "CPU", value: stats.cpu, color: "#FF1493" },
+            { label: "MEM", value: stats.memory, color: "#00FFFF" },
+            { label: "NET", value: stats.network, color: "#FFF500", unit: "MB/s" },
+          ].map((stat) => (
+            <div key={stat.label} className="flex items-center gap-2">
+              <span className="text-xs font-mono text-white/50">{stat.label}</span>
+              <div className="w-16 h-4 bg-black border border-white/30 relative overflow-hidden">
+                <div className="h-full transition-all duration-500" style={{ backgroundColor: stat.color, width: `${Math.min(stat.value, 100)}%` }} />
+              </div>
+              <span className="text-xs font-mono font-bold" style={{ color: stat.color }}>
+                {stat.unit ? `${stat.value}` : `${stat.value}%`}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    };
+
+    // SynthKnob Component
+    const SynthKnob = ({ value: initialValue = 75, min = 0, max = 100, label, color = "#FF1493", size = 70 }) => {
+      const [value, setValue] = useState(initialValue);
+      const [isDragging, setIsDragging] = useState(false);
+      const rotation = ((value - min) / (max - min)) * 270 - 135;
+      const percentage = ((value - min) / (max - min)) * 100;
+
+      const handleDrag = (e) => {
+        if (!isDragging) return;
+        const delta = e.movementY;
+        const sensitivity = 0.5;
+        setValue(prev => Math.max(min, Math.min(max, prev - delta * sensitivity)));
+      };
+
+      useEffect(() => {
+        let animationId;
+        const animate = () => {
+          setValue(prev => {
+            const diff = initialValue - prev;
+            if (Math.abs(diff) < 0.5) return initialValue;
+            return prev + diff * 0.1;
+          });
+          animationId = requestAnimationFrame(animate);
+        };
+        animationId = requestAnimationFrame(animate);
+        const timer = setTimeout(() => cancelAnimationFrame(animationId), 1200);
+        return () => {
+          cancelAnimationFrame(animationId);
+          clearTimeout(timer);
+        };
+      }, [initialValue]);
+
+      return (
+        <div className="flex flex-col items-center gap-2">
+          <div
+            className="knob-container"
+            style={{ width: size, height: size }}
+            onMouseDown={() => setIsDragging(true)}
+            onMouseUp={() => setIsDragging(false)}
+            onMouseLeave={() => setIsDragging(false)}
+            onMouseMove={handleDrag}
+          >
+            <div className="absolute inset-0 rounded-full border-4 border-black bg-white transition-all"
+              style={{ boxShadow: isDragging ? '0px 0px 0px 0px #000000' : '4px 4px 0px 0px #000000', transform: isDragging ? 'translate(4px, 4px)' : 'translate(0, 0)' }}>
+            </div>
+            <svg className="absolute inset-0" width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
+              <circle cx={size/2} cy={size/2} r={size/2-8} fill="none" stroke="#e5e5e5" strokeWidth={6}
+                strokeDasharray={`${Math.PI * (size-16) * 0.75} ${Math.PI * (size-16)}`} strokeLinecap="round" />
+              <circle cx={size/2} cy={size/2} r={size/2-8} fill="none" stroke={color} strokeWidth={6}
+                strokeDasharray={`${Math.PI * (size-16) * 0.75 * (percentage/100)} ${Math.PI * (size-16)}`} strokeLinecap="round" style={{ transform: 'rotate(135deg)', transformOrigin: 'center' }} />
+            </svg>
+            <div className="absolute inset-2 rounded-full bg-white border-3 border-black flex items-center justify-center"
+              style={{ transform: `rotate(${rotation}deg)` }}>
+              <div className="absolute top-2 w-1.5 h-3 rounded-full" style={{ backgroundColor: color }} />
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-3 h-3 rounded-full border-2 border-black" style={{ backgroundColor: color }} />
+            </div>
+          </div>
+          <span className="text-xs font-bold text-white tracking-wider uppercase">{label}</span>
+          <div className="px-2 py-1 bg-black border-2 border-white text-white font-mono text-xs min-w-[50px] text-center transition-all"
+            style={{ transform: isDragging ? 'scale(1.1)' : 'scale(1)', borderColor: isDragging ? color : '#ffffff' }}>
+            {Math.round(value)}%
+          </div>
+        </div>
+      );
+    };
+
+    // SynthFader Component
+    const SynthFader = ({ value: initialValue = 72, label, color = "#FF1493", height = 120 }) => {
+      const [value, setValue] = useState(0);
+      const [isDragging, setIsDragging] = useState(false);
+      const [y, setY] = useState(0);
+      const trackRef = useRef(null);
+
+      useEffect(() => {
+        const targetY = -((initialValue / 100) * (height - 40));
+        let currentY = 0;
+        const animate = () => {
+          const diff = targetY - currentY;
+          if (Math.abs(diff) < 0.5) {
+            setY(targetY);
+            setValue(initialValue);
+            return;
+          }
+          currentY += diff * 0.1;
+          setY(currentY);
+          setValue(Math.round((-currentY / (height - 40)) * 100));
+          requestAnimationFrame(animate);
+        };
+        const timer = setTimeout(animate, 100);
+        return () => clearTimeout(timer);
+      }, [initialValue, height]);
+
+      const handleMouseDown = (e) => {
+        setIsDragging(true);
+        const startY = e.clientY;
+        const startPos = y;
+
+        const handleMouseMove = (moveEvent) => {
+          const delta = moveEvent.clientY - startY;
+          const newY = Math.max(-height + 40, Math.min(0, startPos + delta));
+          setY(newY);
+          setValue(Math.round((-newY / (height - 40)) * 100));
+        };
+
+        const handleMouseUp = () => {
+          setIsDragging(false);
+          document.removeEventListener('mousemove', handleMouseMove);
+          document.removeEventListener('mouseup', handleMouseUp);
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+      };
+
+      const fillHeight = Math.max(10, ((y + height - 40) / (height - 40)) * 100);
+
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <span className="text-xs font-bold text-white tracking-wider uppercase">{label}</span>
+          <div ref={trackRef} className="fader-track w-12 overflow-visible" style={{ height }}>
+            <div className="absolute left-0 right-0 top-0 bottom-0 flex flex-col justify-between py-5 px-1">
+              {[100, 75, 50, 25, 0].map((mark) => (
+                <div key={mark} className="flex items-center gap-1">
+                  <div className="w-2 h-0.5 bg-white/50" />
+                </div>
+              ))}
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 rounded-b-full transition-all" style={{ backgroundColor: color, height: `${fillHeight}%` }} />
+            <div className="fader-handle w-14 h-8 rounded-sm flex items-center justify-center left-1/2 -translate-x-1/2"
+              style={{
+                bottom: `${fillHeight}%`,
+                transform: `translateX(-50%) ${isDragging ? 'translateY(4px) scaleX(1.1)' : ''}`,
+                boxShadow: isDragging ? '0px 0px 0px 0px #000000' : '4px 4px 0px 0px #000000'
+              }}
+              onMouseDown={handleMouseDown}>
+              <div className="flex gap-1">
+                <div className="w-1 h-4 bg-black rounded-full" />
+                <div className="w-1 h-4 bg-black rounded-full" />
+                <div className="w-1 h-4 bg-black rounded-full" />
+              </div>
+              <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: color }} />
+              <div className="absolute right-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: color }} />
+            </div>
+          </div>
+          <div className="px-3 py-1.5 bg-white border-3 border-black font-mono font-bold text-black text-sm min-w-[60px] text-center transition-all"
+            style={{ transform: isDragging ? 'scale(1.1)' : 'scale(1)', backgroundColor: isDragging ? color : '#ffffff' }}>
+            {value}
+          </div>
+        </div>
+      );
+    };
+
+    // MetricCard Component
+    const MetricCard = ({ title, value, color, bgColor, delay }) => {
+      const [displayValue, setDisplayValue] = useState("0");
+      const numValue = parseInt(value.replace(/[^0-9]/g, ""));
+      const prefix = value.replace(/[0-9]/g, "");
+
+      useEffect(() => {
+        const timer = setTimeout(() => {
+          let start = 0;
+          const duration = 1500;
+          const startTime = Date.now();
+          const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const current = Math.floor(start + (numValue - start) * easeOut);
+            setDisplayValue(prefix + current.toLocaleString());
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+          requestAnimationFrame(animate);
+        }, delay * 1000);
+        return () => clearTimeout(timer);
+      }, [value, delay, numValue, prefix]);
+
+      return (
+        <div className={`relative ${bgColor} border-4 border-black p-5 aspect-square flex flex-col justify-between overflow-hidden group cursor-pointer animate-scale-in transition-all hover:scale-[1.02]`}
+          style={{ boxShadow: `6px 6px 0px 0px #000000`, animationDelay: `${delay}s` }}
+          onMouseEnter={(e) => e.currentTarget.style.boxShadow = `10px 10px 0px 0px ${color}`}
+          onMouseLeave={(e) => e.currentTarget.style.boxShadow = `6px 6px 0px 0px #000000`}>
+          <div className="absolute inset-0 opacity-10 pointer-events-none polka-dots" style={{ color }} />
+          <div className="relative z-10">
+            <h3 className="text-xs font-black tracking-wider text-black uppercase">{title}</h3>
+          </div>
+          <div className="relative z-10">
+            <span className="text-4xl md:text-5xl font-black text-black block" style={{ fontFamily: "'Syne', sans-serif" }}>{displayValue}</span>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 h-3" style={{ backgroundColor: color }} />
+          <div className="absolute top-0 right-0 w-8 h-8 bg-black">
+            <div className="absolute bottom-1 left-1 w-2 h-2 rounded-full bg-white" />
+          </div>
+        </div>
+      );
+    };
+
+    // ParameterPanel Component
+    const ParameterPanel = () => {
+      return (
+        <section className="p-6 animate-slide-in-up" style={{animationDelay: '0.2s'}}>
+          <div className="mb-6 flex items-center gap-4 animate-slide-in-left" style={{animationDelay: '0.3s'}}>
+            <div className="w-4 h-4 bg-[#FFF500] border-3 border-black" />
+            <h2 className="text-xl font-black tracking-tight text-white uppercase" style={{ fontFamily: "'Syne', sans-serif" }}>Core Parameters</h2>
+            <div className="flex-1 h-1 bg-white/20" />
+            <span className="text-xs font-mono text-[#00FFFF]">SYS.01</span>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 grid grid-cols-2 gap-4">
+              <MetricCard title="Total Users" value="48,592" color="#FF1493" bgColor="bg-white" delay={0.4} />
+              <MetricCard title="Revenue" value="$128K" color="#00FFFF" bgColor="bg-[#FFF500]" delay={0.5} />
+              <MetricCard title="Active Sessions" value="2,847" color="#FFF500" bgColor="bg-[#00FFFF]" delay={0.6} />
+              <MetricCard title="Conversion" value="24.8%" color="#FF1493" bgColor="bg-white" delay={0.7} />
+            </div>
+            <div className="bg-white border-4 border-black p-6 relative animate-slide-in-up" style={{ boxShadow: '6px 6px 0px 0px #FF1493', animationDelay: '0.5s' }}>
+              <div className="flex items-center justify-between mb-6 pb-4 border-b-3 border-black">
+                <span className="font-black text-sm tracking-wider text-black">CONTROL MATRIX</span>
+                <div className="flex gap-1">
+                  <div className="w-3 h-3 rounded-full bg-[#FF1493] border-2 border-black" />
+                  <div className="w-3 h-3 rounded-full bg-[#00FFFF] border-2 border-black" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-3 grid grid-cols-3 gap-2">
+                  <SynthKnob value={75} label="Gain" color="#FF1493" size={70} />
+                  <SynthKnob value={60} label="Filter" color="#00FFFF" size={70} />
+                  <SynthKnob value={85} label="Resonance" color="#FFF500" size={70} />
+                </div>
+                <div className="col-span-3 h-1 bg-black my-2" />
+                <div className="col-span-3 flex justify-around">
+                  <SynthFader value={72} label="Master" color="#FF1493" height={120} />
+                  <SynthFader value={45} label="Bass" color="#00FFFF" height={120} />
+                  <SynthFader value={88} label="Treble" color="#FFF500" height={120} />
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t-3 border-black flex justify-between items-center">
+                <span className="text-xs font-mono text-black">OUTPUT LEVEL</span>
+                <div className="flex gap-1">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="w-3 h-6 bg-black border-2 border-black animate-pulse-glow"
+                      style={{ backgroundColor: i < 6 ? '#FF1493' : '#000', animationDelay: `${i * 0.1}s` }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // OscilloscopeChart Component
+    const OscilloscopeChart = () => {
+      const [time, setTime] = useState(0);
+      const [isHovering, setIsHovering] = useState(false);
+      const [mouseControl, setMouseControl] = useState({ x: 0.5, y: 0.5 });
+
+      useEffect(() => {
+        let animationId;
+        const animate = (t) => {
+          setTime(t * 0.002);
+          animationId = requestAnimationFrame(animate);
+        };
+        animationId = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationId);
+      }, []);
+
+      const generateWaveform = (offset = 0, freq = 1, amp = 50) => {
+        const points = [];
+        for (let i = 0; i <= 100; i++) {
+          const x = (i / 100) * 800;
+          const t = time * freq + offset;
+          const y = 150 + Math.sin((i / 100) * Math.PI * 4 + t) * amp +
+            Math.sin((i / 100) * Math.PI * 8 + t * 1.5) * (amp * 0.3) +
+            Math.sin((i / 100) * Math.PI * 2 + t * 0.5) * (amp * 0.5);
+          points.push(`${x},${y}`);
+        }
+        return `M ${points.join(' L ')}`;
+      };
+
+      const frequency = isHovering ? 0.5 + mouseControl.x * 2 : 1;
+      const amplitude = isHovering ? 30 + mouseControl.y * 60 : 60;
+      const pathD = generateWaveform(0, frequency, amplitude);
+      const pathD2 = generateWaveform(1, isHovering ? 0.3 + (1 - mouseControl.x) * 1.5 : 0.7, isHovering ? 20 + (1 - mouseControl.y) * 50 : 40);
+
+      const handleMouseMove = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setMouseControl({
+          x: (e.clientX - rect.left) / rect.width,
+          y: (e.clientY - rect.top) / rect.height
+        });
+        setIsHovering(true);
+      };
+
+      return (
+        <section className="p-6 animate-slide-in-up" style={{animationDelay: '0.6s'}}>
+          <div className="mb-6 flex items-center gap-4 animate-slide-in-left" style={{animationDelay: '0.7s'}}>
+            <div className="w-4 h-4 bg-[#FF1493] border-3 border-black" />
+            <h2 className="text-xl font-black tracking-tight text-white uppercase" style={{ fontFamily: "'Syne', sans-serif" }}>Waveform Monitor</h2>
+            <div className="flex-1 h-1 bg-white/20" />
+            <span className="text-xs font-mono text-[#00FFFF]">SCOPE.02</span>
+          </div>
+          <div className="bg-[#FFF500] border-4 border-black p-4 relative animate-scale-in" style={{ boxShadow: '8px 8px 0px 0px #000000', animationDelay: '0.8s' }}>
+            <div className="bg-black p-4 rounded-sm relative overflow-hidden">
+              <div className="absolute inset-0 opacity-20">
+                {[...Array(10)].map((_, i) => (
+                  <div key={`h-${i}`} className="absolute w-full h-px bg-[#00FFFF]" style={{ top: `${(i + 1) * 10}%` }} />
+                ))}
+                {[...Array(20)].map((_, i) => (
+                  <div key={`v-${i}`} className="absolute h-full w-px bg-[#00FFFF]" style={{ left: `${(i + 1) * 5}%` }} />
+                ))}
+              </div>
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-1/2 left-0 w-full h-0.5 bg-[#FF1493]/50" />
+                <div className="absolute left-1/2 top-0 h-full w-0.5 bg-[#FF1493]/50" />
+              </div>
+              <svg viewBox="0 0 800 300" className="w-full h-[300px] relative z-10 cursor-crosshair"
+                onMouseMove={handleMouseMove} onMouseLeave={() => setIsHovering(false)}>
+                <defs>
+                  <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#FF1493" />
+                    <stop offset="50%" stopColor="#00FFFF" />
+                    <stop offset="100%" stopColor="#FFF500" />
+                  </linearGradient>
+                </defs>
+                <path d={pathD2} fill="none" stroke="#00FFFF" strokeWidth={2} opacity={0.5} />
+                <path d={pathD} fill="none" stroke="url(#gradient1)" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <div className="absolute top-0 bottom-0 w-0.5 bg-[#FF1493]/30 pointer-events-none animate-scanline" style={{animation: 'scanline 3s linear infinite'}} />
+            </div>
+            <div className="mt-4 bg-[#1a1a2e] border-4 border-black p-4 relative">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs font-black uppercase text-white/60 tracking-wider">Time/Div</span>
+                    <div className="flex items-center gap-2">
+                      <button className="w-8 h-10 bg-[#333] border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center justify-center hover:scale-105 active:scale-95 active:translate-y-0.5">
+                        <span className="text-white font-bold">−</span>
+                      </button>
+                      <div className="relative">
+                        <div className="w-20 h-10 bg-black border-3 border-[#444] rounded-sm flex items-center justify-center overflow-hidden">
+                          <div className="absolute inset-0 bg-gradient-to-b from-[#00FFFF]/10 to-transparent" />
+                          <span className="text-[#00FFFF] font-mono text-lg font-bold relative z-10 drop-shadow-[0_0_8px_rgba(0,255,255,0.8)]">5ms</span>
+                        </div>
+                      </div>
+                      <button className="w-8 h-10 bg-[#333] border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center justify-center hover:scale-105 active:scale-95 active:translate-y-0.5">
+                        <span className="text-white font-bold">+</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="w-px h-12 bg-white/20" />
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs font-black uppercase text-white/60 tracking-wider">Volts/Div</span>
+                    <div className="flex items-center gap-2">
+                      <button className="w-8 h-10 bg-[#333] border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center justify-center hover:scale-105 active:scale-95 active:translate-y-0.5">
+                        <span className="text-white font-bold">−</span>
+                      </button>
+                      <div className="relative">
+                        <div className="w-20 h-10 bg-black border-3 border-[#444] rounded-sm flex items-center justify-center overflow-hidden">
+                          <div className="absolute inset-0 bg-gradient-to-b from-[#FF1493]/10 to-transparent" />
+                          <span className="text-[#FF1493] font-mono text-lg font-bold relative z-10 drop-shadow-[0_0_8px_rgba(255,20,147,0.8)]">2V</span>
+                        </div>
+                      </div>
+                      <button className="w-8 h-10 bg-[#333] border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center justify-center hover:scale-105 active:scale-95 active:translate-y-0.5">
+                        <span className="text-white font-bold">+</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 items-end">
+                  <span className="text-xs font-black uppercase text-white/60 tracking-wider">Coupling</span>
+                  <div className="flex gap-2 bg-black/30 p-1.5 rounded-sm border-2 border-[#444]">
+                    {["AC", "DC", "GND"].map((mode, i) => (
+                      <button key={mode} className={`relative px-4 py-2 border-2 border-black text-xs font-black transition-all ${
+                        i === 0 ? "bg-[#00FFFF] text-black" : "bg-gradient-to-b from-[#444] to-[#222] text-white"
+                      }`}>
+                        {mode}
+                        {i === 0 && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#00FF00] rounded-full border border-black animate-pulse-glow" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-[#333] border border-[#555]" />
+              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#333] border border-[#555]" />
+              <div className="absolute bottom-2 left-2 w-2 h-2 rounded-full bg-[#333] border border-[#555]" />
+              <div className="absolute bottom-2 right-2 w-2 h-2 rounded-full bg-[#333] border border-[#555]" />
+            </div>
+            <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#FF1493] border-3 border-black" />
+            <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-[#00FFFF] border-3 border-black" />
+          </div>
+          <div className="mt-4 grid grid-cols-4 gap-4">
+            {[
+              { label: "Frequency", value: isHovering ? `${(frequency * 60).toFixed(1)} Hz` : "60.0 Hz", color: "#FF1493" },
+              { label: "Amplitude", value: isHovering ? `${(amplitude / 25).toFixed(1)} V` : "2.4 V", color: "#00FFFF" },
+              { label: "Period", value: isHovering ? `${(1000 / (frequency * 60)).toFixed(1)} ms` : "16.7 ms", color: "#FFF500" },
+              { label: "Mouse Control", value: isHovering ? `${Math.round(mouseControl.x * 100)},${Math.round(mouseControl.y * 100)}` : "ACTIVE", color: "#FF1493" },
+            ].map((stat, i) => (
+              <div key={stat.label} className="bg-black border-3 p-3 animate-scale-in transition-all hover:scale-105"
+                style={{ borderColor: isHovering ? stat.color : '#ffffff', animationDelay: `${1.1 + i * 0.1}s`, boxShadow: `4px 4px 0px 0px ${isHovering ? stat.color : 'transparent'}` }}>
+                <div className="text-xs text-white/60 font-mono uppercase">{stat.label}</div>
+                <div className="text-lg font-black" style={{ color: stat.color, fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    };
+
+    // PatchBay Component
+    const PatchBay = () => {
+      const [tasks, setTasks] = useState([
+        { id: 1, title: "System Sync", status: "completed", priority: "high", time: "09:00" },
+        { id: 2, title: "Data Pipeline", status: "active", priority: "high", time: "10:30" },
+        { id: 3, title: "User Import", status: "pending", priority: "medium", time: "11:15" },
+        { id: 4, title: "Backup Verify", status: "warning", priority: "low", time: "12:00" },
+        { id: 5, title: "Analytics Job", status: "pending", priority: "medium", time: "14:00" },
+      ]);
+      const [selectedTask, setSelectedTask] = useState(null);
+      const [showAddForm, setShowAddForm] = useState(false);
+      const [newTaskTitle, setNewTaskTitle] = useState("");
+      const [newTaskPriority, setNewTaskPriority] = useState("medium");
+
+      const statusConfig = {
+        pending: { color: "#FFF500", bg: "bg-[#FFF500]" },
+        active: { color: "#00FFFF", bg: "bg-[#00FFFF]" },
+        completed: { color: "#00FF00", bg: "bg-green-400" },
+        warning: { color: "#FF1493", bg: "bg-[#FF1493]" },
+      };
+
+      const priorityColors = { low: "#00FFFF", medium: "#FFF500", high: "#FF1493" };
+
+      const toggleTaskStatus = (id) => {
+        setTasks(prev => prev.map(task => {
+          if (task.id === id) {
+            const statuses = ["pending", "active", "completed"];
+            const currentIndex = statuses.indexOf(task.status);
+            const nextStatus = statuses[(currentIndex + 1) % statuses.length];
+            return { ...task, status: nextStatus };
+          }
+          return task;
+        }));
+      };
+
+      const removeTask = (id, e) => {
+        e.stopPropagation();
+        setTasks(prev => prev.filter(task => task.id !== id));
+      };
+
+      const addTask = () => {
+        if (!newTaskTitle.trim()) return;
+        const now = new Date();
+        const timeString = now.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" });
+        const newTask = {
+          id: Math.max(...tasks.map(t => t.id), 0) + 1,
+          title: newTaskTitle.trim(),
+          status: "pending",
+          priority: newTaskPriority,
+          time: timeString,
+        };
+        setTasks(prev => [...prev, newTask]);
+        setNewTaskTitle("");
+        setShowAddForm(false);
+      };
+
+      return (
+        <section className="p-6 animate-slide-in-up" style={{animationDelay: '1.2s'}}>
+          <div className="mb-6 flex items-center gap-4 animate-slide-in-left" style={{animationDelay: '1.3s'}}>
+            <div className="w-4 h-4 bg-[#00FFFF] border-3 border-black" />
+            <h2 className="text-xl font-black tracking-tight text-white uppercase" style={{ fontFamily: "'Syne', sans-serif" }}>Patch Bay / Tasks</h2>
+            <div className="flex-1 h-1 bg-white/20" />
+            <span className="text-xs font-mono text-[#FF1493]">PBX.03</span>
+          </div>
+          <div className="bg-white border-4 border-black p-6 relative animate-scale-in" style={{ boxShadow: '8px 8px 0px 0px #00FFFF', animationDelay: '1.4s' }}>
+            {showAddForm && (
+              <div className="fixed inset-0 bg-black/60 z-40 flex items-center justify-center" onClick={() => setShowAddForm(false)}>
+                <div className="bg-[#1a1a2e] border-4 border-black p-6 w-full max-w-md shadow-[8px_8px_0px_0px_#FF1493]" onClick={e => e.stopPropagation()}>
+                  <h3 className="text-xl font-black text-white mb-4 uppercase tracking-tight" style={{ fontFamily: "'Syne', sans-serif" }}>New Task</h3>
+                  <div className="mb-4">
+                    <label className="block text-xs font-bold text-white/60 uppercase mb-2">Task Name</label>
+                    <input type="text" value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)}
+                      placeholder="Enter task name..." autoFocus
+                      className="w-full bg-black border-3 border-[#444] p-3 text-white font-mono focus:border-[#00FFFF] focus:outline-none"
+                      onKeyDown={e => { if (e.key === 'Enter') addTask(); if (e.key === 'Escape') setShowAddForm(false); }} />
+                  </div>
+                  <div className="mb-6">
+                    <label className="block text-xs font-bold text-white/60 uppercase mb-2">Priority</label>
+                    <div className="flex gap-2">
+                      {["low", "medium", "high"].map((p) => (
+                        <button key={p} onClick={() => setNewTaskPriority(p)}
+                          className={`flex-1 py-2 border-3 border-black font-bold uppercase text-sm transition-all ${
+                            newTaskPriority === p ? "bg-[#00FFFF] text-black" : "bg-[#333] text-white hover:bg-[#444]"
+                          }`}>
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={() => setShowAddForm(false)} className="flex-1 bg-white border-3 border-black py-3 font-bold text-black uppercase shadow-[4px_4px_0px_0px_#000000] hover:scale-[1.02] active:scale-[0.98] active:translate-y-0.5">Cancel</button>
+                    <button onClick={addTask} disabled={!newTaskTitle.trim()}
+                      className="flex-1 bg-[#FFF500] border-3 border-black py-3 font-bold text-black uppercase shadow-[4px_4px_0px_0px_#000000] disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98] active:translate-y-0.5">Add Task</button>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="flex items-center justify-between mb-6 pb-4 border-b-4 border-black">
+              <div className="flex items-center gap-4">
+                <div className="flex gap-2">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="w-4 h-4 rounded-full border-3 border-black animate-pulse-glow" style={{ backgroundColor: ['#FF1493', '#00FFFF'][i % 2], animationDelay: `${i * 0.3}s` }} />
+                  ))}
+                </div>
+                <span className="font-black text-sm tracking-wider">I/O MATRIX</span>
+              </div>
+              <button onClick={() => setShowAddForm(true)}
+                className="bg-[#FFF500] border-3 border-black px-4 py-2 flex items-center gap-2 font-bold text-sm shadow-[4px_4px_0px_0px_#000000] text-black hover:scale-105 active:scale-95 active:translate-y-0.5">
+                <i className="ph ph-plus font-bold"></i>
+                <span>NEW TASK</span>
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tasks.map((task, index) => {
+                const isSelected = selectedTask === task.id;
+                return (
+                  <div key={task.id} onClick={() => { setSelectedTask(task.id); toggleTaskStatus(task.id); }}
+                    className={`relative bg-black border-4 border-black p-4 cursor-pointer overflow-hidden transition-all hover:scale-[1.02] ${isSelected ? 'ring-4 ring-[#FF1493]' : ''} animate-scale-in`}
+                    style={{ boxShadow: `4px 4px 0px 0px ${priorityColors[task.priority]}`, animationDelay: `${1.5 + index * 0.1}s` }}>
+                    <div className="absolute top-0 right-0 w-16 h-16 -mr-8 -mt-8 rotate-45" style={{ backgroundColor: priorityColors[task.priority] }} />
+                    <div className="relative z-10">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-10 h-10 ${statusConfig[task.status].bg} border-3 border-white flex items-center justify-center transition-transform hover:rotate-[360deg]`}>
+                            <i className={`ph ph-${task.status === 'completed' ? 'check-circle' : task.status === 'active' ? 'clock' : task.status === 'warning' ? 'warning' : 'circle'} text-black font-bold text-xl`}></i>
+                          </div>
+                          <div>
+                            <div className="text-white font-bold text-sm">CH-{String(task.id).padStart(2, "0")}</div>
+                            <div className="text-white/50 text-xs font-mono">{task.time}</div>
+                          </div>
+                        </div>
+                        <button onClick={(e) => removeTask(task.id, e)} className="text-white/50 hover:text-[#FF1493] transition-colors hover:rotate-90">
+                          <i className="ph ph-x font-bold"></i>
+                        </button>
+                      </div>
+                      <div className="bg-white border-2 border-black p-2">
+                        <span className="text-black font-bold text-sm tracking-wide">{task.title}</span>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between">
+                        <div className="flex gap-1">
+                          {[...Array(3)].map((_, i) => (
+                            <div key={i} className="w-2 h-6 border-2 border-white/30 transition-colors"
+                              style={{ backgroundColor: i < (task.priority === 'high' ? 3 : task.priority === 'medium' ? 2 : 1) ? priorityColors[task.priority] : 'transparent' }} />
+                          ))}
+                        </div>
+                        <span className="text-xs font-black uppercase px-2 py-1 border-2" style={{ color: priorityColors[task.priority], borderColor: priorityColors[task.priority] }}>{task.priority}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-6 pt-6 border-t-4 border-black">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="font-mono text-xs text-black/60">ACTIVE CONNECTIONS</span>
+                  <div className="flex gap-2">
+                    {tasks.filter(t => t.status === "active").map(task => (
+                      <div key={task.id} className="flex items-center gap-1 bg-[#00FFFF] border-2 border-black px-2 py-1 animate-pulse-glow">
+                        <div className="w-2 h-2 rounded-full bg-black" />
+                        <span className="text-xs font-bold">CH-{String(task.id).padStart(2, "0")}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-4 text-xs">
+                  {Object.entries(statusConfig).map(([status, config]) => (
+                    <div key={status} className="flex items-center gap-1">
+                      <div className="w-3 h-3 border-2 border-black" style={{ backgroundColor: config.color }} />
+                      <span className="font-bold uppercase">{status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Sidebar Component
+    const SynthSidebar = ({ activeItem, onItemClick }) => {
+      const menuItems = [
+        { id: "dashboard", label: "DASHBOARD", icon: "house", color: "#00FFFF" },
+        { id: "analytics", label: "ANALYTICS", icon: "chart-line-up", color: "#FF1493" },
+        { id: "users", label: "USERS", icon: "users", color: "#FFF500" },
+        { id: "reports", label: "REPORTS", icon: "file-text", color: "#00FFFF" },
+        { id: "settings", label: "SETTINGS", icon: "gear", color: "#FF1493" },
+      ];
+
+      return (
+        <aside className="fixed left-0 top-0 h-screen w-[250px] bg-white border-r-4 border-black z-50 flex flex-col animate-slide-in-left" style={{animationDelay: '0.1s'}}>
+          <div className="p-6 border-b-4 border-black bg-[#FF1493] animate-scale-in" style={{animationDelay: '0.2s'}}>
+            <div className="bg-white border-3 border-black p-3 shadow-[6px_6px_0px_0px_#000000] overflow-hidden transition-transform hover:scale-105 hover:rotate-[-2deg]">
+              <h1 className="text-xl font-black tracking-tight whitespace-nowrap text-black" style={{ fontFamily: "'Syne', sans-serif" }}>
+                SYNTH<span className="text-black">.OS</span>
+              </h1>
+              <p className="text-xs font-bold text-black mt-1">V.2.0.4//BETA</p>
+            </div>
+          </div>
+          <nav className="flex-1 p-4 space-y-3 overflow-y-auto">
+            {menuItems.map((item, index) => {
+              const isActive = activeItem === item.id;
+              return (
+                <button key={item.id} onClick={() => onItemClick(item.id)}
+                  className={`w-full relative group ${isActive ? "bg-[#00FFFF] shadow-[6px_6px_0px_0px_#000000]" : "bg-white shadow-[4px_4px_0px_0px_#000000] hover:shadow-[6px_6px_0px_0px_#000000]"} border-3 border-black p-4 flex items-center gap-3 transition-all hover:scale-[1.02] hover:translate-x-2 active:scale-95 active:translate-y-1 active:shadow-none animate-slide-in-left`}
+                  style={{animationDelay: `${0.3 + index * 0.05}s`}}>
+                  {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-black" />}
+                  <div className={isActive ? '' : 'animate-[pulse_2s_ease-in-out_infinite]'} style={{animationDelay: `${index * 0.5}s`}}>
+                    <i className={`ph ph-${item.icon} text-2xl font-bold`} style={{ color: isActive ? '#000000' : item.color }}></i>
+                  </div>
+                  <span className="font-bold text-sm tracking-wider text-black">{item.label}</span>
+                  <div className="ml-auto flex gap-1">
+                    <div className={`w-2 h-2 rounded-full border-2 border-black ${isActive ? 'bg-[#FF1493]' : 'bg-transparent'}`} />
+                    <div className={`w-2 h-2 rounded-full border-2 border-black ${isActive ? 'bg-[#FFF500]' : 'bg-transparent'}`} />
+                  </div>
+                </button>
+              );
+            })}
+          </nav>
+          <div className="p-4 border-t-4 border-black bg-[#FFF500] animate-slide-in-up" style={{animationDelay: '0.6s'}}>
+            <button className="w-full bg-white border-3 border-black p-3 flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_#000000] font-bold text-black hover:bg-[#FF1493] transition-colors hover:scale-105 active:scale-95 active:translate-y-1 active:shadow-none">
+              <i className="ph ph-sign-out text-xl"></i>
+              <span>LOGOUT</span>
+            </button>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <div className="w-3 h-3 bg-[#00FFFF] border-2 border-black rounded-full animate-pulse-glow" />
+              <span className="text-xs font-bold text-black">SYSTEM ONLINE</span>
+            </div>
+          </div>
+        </aside>
+      );
+    };
+
+    // Dashboard View
+    const DashboardView = () => (
+      <>
+        <ParameterPanel />
+        <OscilloscopeChart />
+        <PatchBay />
+      </>
+    );
+
+    // Analytics Panel
+    const AnalyticsPanel = () => {
+      const metrics = [
+        { label: "Total Views", value: "125,847", change: "+12.5%", up: true, color: "#FF1493" },
+        { label: "Active Users", value: "8,432", change: "+8.2%", up: true, color: "#00FFFF" },
+        { label: "Bounce Rate", value: "42%", change: "-3.1%", up: false, color: "#FFF500" },
+        { label: "Avg Session", value: "4m 32s", change: "+15.3%", up: true, color: "#FF1493" },
+      ];
+
+      const bars = [
+        { label: "Mon", value: 65, color: "#FF1493" },
+        { label: "Tue", value: 85, color: "#00FFFF" },
+        { label: "Wed", value: 45, color: "#FFF500" },
+        { label: "Thu", value: 95, color: "#FF1493" },
+        { label: "Fri", value: 70, color: "#00FFFF" },
+        { label: "Sat", value: 55, color: "#FFF500" },
+        { label: "Sun", value: 80, color: "#FF1493" },
+      ];
+
+      return (
+        <div className="space-y-6 p-6 page-transition">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {metrics.map((metric, index) => (
+              <div key={metric.label} className="bg-white border-4 border-black p-4 relative overflow-hidden transition-all hover:scale-[1.02] hover:-translate-y-1 animate-scale-in"
+                style={{ boxShadow: `6px 6px 0px 0px ${metric.color}`, animationDelay: `${index * 0.1}s` }}>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-black/60 uppercase">{metric.label}</span>
+                    <i className={`ph ph-trend-${metric.up ? 'up' : 'down'} text-[${metric.up ? '#00FF00' : '#FF1493'}]`}></i>
+                  </div>
+                  <span className="text-2xl font-black" style={{ color: metric.color, fontFamily: "'Syne', sans-serif" }}>{metric.value}</span>
+                  <span className={`text-xs font-bold ${metric.up ? "text-[#00FF00]" : "text-[#FF1493]"}`}>{metric.change}</span>
+                </div>
+                <div className="absolute -bottom-4 -right-4 w-16 h-16 rounded-full opacity-20 animate-pulse-glow" style={{ backgroundColor: metric.color }} />
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-[#1a1a2e] border-4 border-white p-6 relative animate-slide-in-up" style={{animationDelay: '0.4s'}}>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-[#FF1493] border-3 border-black" />
+                  <h3 className="text-lg font-black text-white uppercase" style={{ fontFamily: "'Syne', sans-serif" }}>Weekly Traffic</h3>
+                </div>
+                <div className="flex items-center gap-4 text-xs font-mono">
+                  <span className="text-white/40">Peak: 2,847</span>
+                  <span className="text-[#00FFFF]">Avg: 1,523</span>
+                </div>
+              </div>
+              <div className="flex items-end justify-between h-48 gap-3">
+                {bars.map((bar, index) => (
+                  <div key={bar.label} className="flex-1 flex flex-col items-center gap-2">
+                    <div className="w-full h-32 bg-black/20 border-2 border-black relative overflow-hidden">
+                      <div className="absolute bottom-0 left-0 right-0 border-t-4 border-black transition-all duration-500 animate-slide-in-up"
+                        style={{ backgroundColor: bar.color, height: `${bar.value}%`, animationDelay: `${0.3 + index * 0.1}s` }} />
+                    </div>
+                    <span className="text-xs font-bold text-white/60">{bar.label}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#FFF500] border-3 border-black" />
+            </div>
+            <div className="bg-white border-4 border-black p-6 animate-slide-in-up" style={{ boxShadow: '8px 8px 0px 0px #00FFFF', animationDelay: '0.5s' }}>
+              <h3 className="text-lg font-black text-black uppercase mb-6" style={{ fontFamily: "'Syne', sans-serif" }}>Performance</h3>
+              <div className="space-y-6">
+                {[{ value: 87, color: "#FF1493", label: "CPU Usage" }, { value: 64, color: "#00FFFF", label: "Memory" }, { value: 92, color: "#FFF500", label: "Uptime" }].map((item, i) => (
+                  <div key={item.label} className="flex flex-col items-center gap-2">
+                    <div className="relative w-24 h-24">
+                      <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#333" strokeWidth="8" />
+                        <circle cx="50" cy="50" r="40" fill="none" stroke={item.color} strokeWidth="8" strokeLinecap="square"
+                          strokeDasharray={2 * Math.PI * 40} strokeDashoffset={2 * Math.PI * 40 * (1 - item.value / 100)}
+                          style={{ filter: `drop-shadow(0 0 8px ${item.color})`, transition: 'stroke-dashoffset 1.5s ease-out' }} />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-xl font-black" style={{ color: item.color }}>{item.value}%</span>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-black/60 uppercase">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Users Panel
+    const UsersPanel = () => {
+      const [searchQuery, setSearchQuery] = useState("");
+      const [filterRole, setFilterRole] = useState("all");
+
+      const users = [
+        { id: 1, name: "Alex Chen", email: "alex@example.com", role: "admin", status: "active", lastActive: "Now", avatar: "AC", location: "Shanghai" },
+        { id: 2, name: "Sarah Miller", email: "sarah@example.com", role: "editor", status: "active", lastActive: "2m ago", avatar: "SM", location: "New York" },
+        { id: 3, name: "James Wilson", email: "james@example.com", role: "viewer", status: "away", lastActive: "15m ago", avatar: "JW", location: "London" },
+        { id: 4, name: "Yuki Tanaka", email: "yuki@example.com", role: "editor", status: "active", lastActive: "5m ago", avatar: "YT", location: "Tokyo" },
+        { id: 5, name: "Maria Garcia", email: "maria@example.com", role: "viewer", status: "offline", lastActive: "2h ago", avatar: "MG", location: "Madrid" },
+        { id: 6, name: "Tom Brown", email: "tom@example.com", role: "viewer", status: "active", lastActive: "Just now", avatar: "TB", location: "Sydney" },
+      ];
+
+      const roleConfig = {
+        admin: { color: "#FF1493", label: "ADMIN" },
+        editor: { color: "#00FFFF", label: "EDITOR" },
+        viewer: { color: "#FFF500", label: "VIEWER" },
+      };
+
+      const statusConfig = {
+        active: { color: "#00FF00", label: "ONLINE" },
+        away: { color: "#FFF500", label: "AWAY" },
+        offline: { color: "#666666", label: "OFFLINE" },
+      };
+
+      const filteredUsers = users.filter(user => {
+        const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) || user.email.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesRole = filterRole === "all" || user.role === filterRole;
+        return matchesSearch && matchesRole;
+      });
+
+      return (
+        <div className="space-y-6 p-6 page-transition">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[{ label: "Total Users", value: "1,247", color: "#FF1493", icon: "users" }, { label: "Online Now", value: "156", color: "#00FFFF", icon: "check-circle" }, { label: "Admins", value: "12", color: "#FFF500", icon: "crown" }, { label: "New Today", value: "+23", color: "#00FF00", icon: "user" }].map((stat, index) => (
+              <div key={stat.label} className="bg-black border-4 p-4 flex items-center gap-4 animate-scale-in" style={{ borderColor: stat.color, animationDelay: `${index * 0.1}s` }}>
+                <div className="w-12 h-12 border-3 border-black flex items-center justify-center" style={{ backgroundColor: stat.color }}>
+                  <i className={`ph ph-${stat.icon} text-2xl text-black`}></i>
+                </div>
+                <div>
+                  <div className="text-2xl font-black" style={{ color: stat.color, fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
+                  <div className="text-xs font-bold text-white/60 uppercase">{stat.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-4 bg-white border-4 border-black p-4 animate-slide-in-up" style={{ boxShadow: '6px 6px 0px 0px #00FFFF', animationDelay: '0.4s' }}>
+            <div className="flex-1 min-w-[200px] relative">
+              <i className="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-black/40 text-xl"></i>
+              <input type="text" placeholder="Search users..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                className="w-full bg-black/5 border-3 border-black pl-10 pr-4 py-2 text-sm font-bold text-black placeholder:text-black/40 focus:bg-white focus:outline-none" />
+            </div>
+            <div className="flex items-center gap-2">
+              <i className="ph ph-faders text-black text-xl"></i>
+              {["all", "admin", "editor", "viewer"].map(role => (
+                <button key={role} onClick={() => setFilterRole(role)}
+                  className={`px-3 py-1 border-3 border-black text-xs font-bold uppercase transition-all hover:scale-105 ${filterRole === role ? "bg-[#FF1493] text-white" : "bg-white text-black hover:bg-black/5"}`}>
+                  {role}
+                </button>
+              ))}
+            </div>
+            <button className="bg-[#FFF500] border-3 border-black px-4 py-2 flex items-center gap-2 font-bold text-sm shadow-[4px_4px_0px_0px_#000000] text-black hover:scale-105 active:scale-95 active:translate-y-0.5 active:shadow-none">
+              <i className="ph ph-plus"></i>
+              <span>ADD USER</span>
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filteredUsers.map((user, index) => (
+              <div key={user.id} className="bg-white border-4 border-black p-4 relative overflow-hidden group transition-all hover:scale-[1.02] hover:-translate-y-1 animate-scale-in"
+                style={{ boxShadow: `4px 4px 0px 0px ${roleConfig[user.role].color}`, animationDelay: `${index * 0.1}s` }}>
+                <div className="absolute top-0 left-0 right-0 h-1 animate-pulse-glow" style={{ backgroundColor: statusConfig[user.status].color }} />
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 bg-black border-3 border-black flex items-center justify-center flex-shrink-0 transition-transform group-hover:rotate-[360deg]">
+                    <span className="text-lg font-black text-white">{user.avatar}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-black text-black truncate">{user.name}</h3>
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: statusConfig[user.status].color }} />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1 text-xs text-black/60">
+                        <i className="ph ph-envelope text-xs"></i>
+                        <span className="truncate">{user.email}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-black/60">
+                        <i className="ph ph-map-pin text-xs"></i>
+                        <span>{user.location}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="px-2 py-1 border-2 border-black text-xs font-black" style={{ backgroundColor: roleConfig[user.role].color }}>{roleConfig[user.role].label}</div>
+                </div>
+                <div className="mt-4 pt-3 border-t-2 border-black/10 flex items-center justify-between">
+                  <span className="text-xs font-mono text-black/40">Last active: {user.lastActive}</span>
+                  <div className="flex gap-2">
+                    <button className="w-8 h-8 bg-black border-2 border-black flex items-center justify-center hover:bg-[#00FFFF] transition-colors">
+                      <i className="ph ph-envelope text-white text-sm group-hover/btn:text-black"></i>
+                    </button>
+                    <button className="w-8 h-8 bg-black border-2 border-black flex items-center justify-center hover:bg-[#FF1493] transition-colors">
+                      <i className="ph ph-phone text-white text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: roleConfig[user.role].color }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    // Reports Panel
+    const ReportsPanel = () => {
+      const [reports, setReports] = useState([
+        { id: 1, title: "Monthly Traffic Report", type: "pdf", status: "ready", date: "2024-03-12", size: "2.4 MB", starred: true },
+        { id: 2, title: "User Analytics Q1", type: "xls", status: "ready", date: "2024-03-10", size: "1.8 MB", starred: false },
+        { id: 3, title: "Revenue Dashboard", type: "csv", status: "generating", date: "2024-03-12", size: "--", starred: false },
+        { id: 4, title: "System Performance", type: "pdf", status: "ready", date: "2024-03-08", size: "4.2 MB", starred: true },
+        { id: 5, title: "Error Logs Export", type: "csv", status: "error", date: "2024-03-07", size: "--", starred: false },
+        { id: 6, title: "Campaign Results", type: "xls", status: "ready", date: "2024-03-05", size: "856 KB", starred: false },
+      ]);
+
+      const typeConfig = {
+        pdf: { color: "#FF1493", bg: "bg-[#FF1493]", icon: "file-pdf" },
+        csv: { color: "#00FFFF", bg: "bg-[#00FFFF]", icon: "file-csv" },
+        xls: { color: "#FFF500", bg: "bg-[#FFF500]", icon: "file-xls" },
+      };
+
+      const statusConfig = {
+        ready: { color: "#00FF00", label: "READY" },
+        generating: { color: "#FFF500", label: "GENERATING" },
+        error: { color: "#FF1493", label: "ERROR" },
+      };
+
+      const toggleStar = (id) => {
+        setReports(prev => prev.map(r => r.id === id ? { ...r, starred: !r.starred } : r));
+      };
+
+      return (
+        <div className="space-y-6 p-6 page-transition">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[{ label: "Total Reports", value: "48", color: "#FF1493" }, { label: "Generated Today", value: "5", color: "#00FFFF" }, { label: "Scheduled", value: "12", color: "#FFF500" }, { label: "Starred", value: "8", color: "#FFF500" }].map((stat, index) => (
+              <div key={stat.label} className="bg-white border-4 border-black p-4 animate-scale-in" style={{ boxShadow: `4px 4px 0px 0px ${stat.color}`, animationDelay: `${index * 0.1}s` }}>
+                <div className="text-2xl font-black" style={{ color: stat.color, fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
+                <div className="text-xs font-bold text-black/60 uppercase">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-black text-white uppercase" style={{ fontFamily: "'Syne', sans-serif" }}>Recent Reports</h3>
+                <div className="flex gap-2">
+                  {["all", "pdf", "csv", "xls"].map(filter => (
+                    <button key={filter} className="px-3 py-1 bg-white border-2 border-black text-xs font-bold uppercase hover:bg-[#00FFFF] transition-colors">{filter}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {reports.map((report, index) => (
+                  <div key={report.id} className="bg-white border-4 border-black p-4 relative group transition-all hover:scale-[1.02] hover:-translate-y-1 animate-scale-in"
+                    style={{ boxShadow: `4px 4px 0px 0px ${typeConfig[report.type].color}`, animationDelay: `${index * 0.1}s` }}>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`w-12 h-12 ${typeConfig[report.type].bg} border-3 border-black flex items-center justify-center transition-transform group-hover:rotate-[360deg]`}>
+                        <i className={`ph ph-${typeConfig[report.type].icon} text-2xl text-black`}></i>
+                      </div>
+                      <button onClick={() => toggleStar(report.id)} className="text-lg hover:scale-125 transition-transform">
+                        <i className={`ph ph-star${report.starred ? '-fill' : ''} text-xl`} style={{ color: report.starred ? '#FFF500' : '#ccc' }}></i>
+                      </button>
+                    </div>
+                    <h3 className="font-black text-black text-lg mb-2 truncate" style={{ fontFamily: "'Syne', sans-serif" }}>{report.title}</h3>
+                    <div className="flex items-center gap-4 text-xs text-black/60 mb-4">
+                      <span className="font-mono">{report.date}</span>
+                      {report.status === "ready" && <span className="font-mono">{report.size}</span>}
+                    </div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: statusConfig[report.status].color }} />
+                      <span className="text-xs font-bold" style={{ color: statusConfig[report.status].color }}>{statusConfig[report.status].label}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      {report.status === "ready" ? (
+                        <>
+                          <button className="flex-1 bg-black border-2 border-black py-2 flex items-center justify-center gap-1 hover:bg-[#00FFFF] transition-colors group/btn">
+                            <i className="ph ph-download text-white group-hover/btn:text-black"></i>
+                            <span className="text-xs font-bold text-white group-hover/btn:text-black">DL</span>
+                          </button>
+                          <button className="flex-1 bg-black border-2 border-black py-2 flex items-center justify-center gap-1 hover:bg-[#FF1493] transition-colors group/btn">
+                            <i className="ph ph-share-network text-white group-hover/btn:text-black"></i>
+                            <span className="text-xs font-bold text-white group-hover/btn:text-black">SHARE</span>
+                          </button>
+                        </>
+                      ) : report.status === "generating" ? (
+                        <div className="flex-1 bg-black/10 border-2 border-black/20 py-2 flex items-center justify-center">
+                          <div className="flex gap-1">
+                            {[...Array(3)].map((_, i) => <div key={i} className="w-2 h-2 bg-[#FFF500] animate-pulse-glow" style={{animationDelay: `${i * 0.1}s`}} />)}
+                          </div>
+                        </div>
+                      ) : (
+                        <button className="flex-1 bg-[#FF1493] border-2 border-black py-2 flex items-center justify-center gap-1">
+                          <i className="ph ph-x text-white"></i>
+                          <span className="text-xs font-bold text-white">RETRY</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-6">
+              <div className="bg-[#1a1a2e] border-4 border-white p-6 relative animate-slide-in-up" style={{animationDelay: '0.2s'}}>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-3 h-3 bg-[#00FFFF] border-3 border-black" />
+                  <h3 className="text-lg font-black text-white uppercase" style={{ fontFamily: "'Syne', sans-serif" }}>Quick Generate</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[{ id: "traffic", label: "Traffic Report", color: "#FF1493" }, { id: "users", label: "User Activity", color: "#00FFFF" }, { id: "revenue", label: "Revenue Stats", color: "#FFF500" }, { id: "system", label: "System Health", color: "#00FF00" }].map(template => (
+                    <button key={template.id} className="text-left p-4 border-3 border-black bg-white text-black hover:bg-[#00FFFF] transition-all hover:translate-x-1">
+                      <span className="font-black uppercase">{template.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#FF1493] border-3 border-black" />
+              </div>
+              <div className="bg-white border-4 border-black p-6 animate-slide-in-up" style={{ boxShadow: '6px 6px 0px 0px #FF1493', animationDelay: '0.4s' }}>
+                <h3 className="text-lg font-black text-black uppercase mb-4" style={{ fontFamily: "'Syne', sans-serif" }}>Storage</h3>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="font-bold">Used</span>
+                      <span className="font-mono">4.2 GB / 10 GB</span>
+                    </div>
+                    <div className="h-4 bg-black/10 border-2 border-black">
+                      <div className="h-full bg-[#FF1493] animate-slide-in-left" style={{ width: "42%", animationDelay: '0.5s' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Settings Panel
+    const SettingsPanel = () => {
+      const [notifications, setNotifications] = useState({ email: true, push: true, weekly: false, alerts: true });
+      const [security, setSecurity] = useState({ mfa: true, session: false, audit: true });
+      const [saved, setSaved] = useState(false);
+
+      const handleSave = () => {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      };
+
+      const Toggle = ({ checked, onChange, label, description }) => (
+        <div className="flex items-center justify-between py-3 border-b-2 border-black/10 last:border-b-0">
+          <div>
+            <div className="font-bold text-black">{label}</div>
+            {description && <div className="text-xs text-black/60">{description}</div>}
+          </div>
+          <button onClick={() => onChange(!checked)} className="relative active:scale-90 transition-transform">
+            <div className={`w-12 h-6 rounded-full border-2 border-black transition-colors ${checked ? 'bg-[#00FF00]' : 'bg-gray-400'}`}>
+              <div className={`w-5 h-5 rounded-full bg-white border border-black absolute top-0.5 transition-all ${checked ? 'left-6' : 'left-0.5'}`} />
+            </div>
+          </button>
+        </div>
+      );
+
+      const SettingSection = ({ title, icon, color, children, delay = 0 }) => (
+        <div className="bg-white border-4 border-black overflow-hidden animate-slide-in-up" style={{ boxShadow: `6px 6px 0px 0px ${color}`, animationDelay: `${delay}s` }}>
+          <div className="flex items-center gap-3 p-4 border-b-4 border-black" style={{ backgroundColor: color }}>
+            <div className="w-10 h-10 bg-black border-2 border-black flex items-center justify-center">
+              <i className={`ph ph-${icon} text-xl`} style={{ color }}></i>
+            </div>
+            <h3 className="text-lg font-black text-black uppercase" style={{ fontFamily: "'Syne', sans-serif" }}>{title}</h3>
+          </div>
+          <div className="p-4">{children}</div>
+        </div>
+      );
+
+      return (
+        <div className="space-y-6 p-6 page-transition">
+          <div className="flex items-center justify-between bg-white border-4 border-black p-4 animate-slide-in-down" style={{ boxShadow: '6px 6px 0px 0px #00FFFF' }}>
+            <div className="flex items-center gap-3">
+              <i className="ph ph-info text-[#00FFFF] text-2xl"></i>
+              <span className="font-bold text-black">Settings are automatically saved</span>
+            </div>
+            <div className="flex gap-3">
+              <button className="px-4 py-2 border-3 border-black font-bold uppercase text-sm hover:bg-black/5 transition-colors flex items-center gap-2">
+                <i className="ph ph-arrow-counter-clockwise"></i> Reset
+              </button>
+              <button onClick={handleSave} className="px-4 py-2 bg-[#FFF500] border-3 border-black font-bold uppercase text-sm shadow-[4px_4px_0px_0px_#000000] hover:scale-105 active:scale-95 active:translate-y-0.5 active:shadow-none flex items-center gap-2">
+                {saved ? <><i className="ph ph-check"></i> Saved!</> : <><i className="ph ph-floppy-disk"></i> Save</>}
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SettingSection title="Notifications" icon="bell" color="#FF1493" delay={0.1}>
+              <Toggle label="Email Notifications" description="Receive daily summaries" checked={notifications.email} onChange={v => setNotifications({ ...notifications, email: v })} />
+              <Toggle label="Push Notifications" description="Real-time alerts" checked={notifications.push} onChange={v => setNotifications({ ...notifications, push: v })} />
+              <Toggle label="Weekly Reports" description="Monday morning digest" checked={notifications.weekly} onChange={v => setNotifications({ ...notifications, weekly: v })} />
+              <Toggle label="Critical Alerts" description="System warnings only" checked={notifications.alerts} onChange={v => setNotifications({ ...notifications, alerts: v })} />
+            </SettingSection>
+            <SettingSection title="Appearance" icon="palette" color="#00FFFF" delay={0.2}>
+              <div className="space-y-4">
+                <div>
+                  <div className="font-bold text-black mb-2">Theme</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[{ id: "synthwave", name: "Synthwave", colors: ["#FF1493", "#00FFFF", "#FFF500"] }, { id: "midnight", name: "Midnight", colors: ["#6366f1", "#8b5cf6", "#ec4899"] }].map(theme => (
+                      <button key={theme.id} className="p-3 border-3 border-black bg-[#00FFFF] text-left">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="flex gap-1">
+                            {theme.colors.map((c, i) => <div key={i} className="w-3 h-3 border border-black" style={{ backgroundColor: c }} />)}
+                          </div>
+                          <i className="ph ph-check text-black"></i>
+                        </div>
+                        <span className="font-bold text-sm text-black">{theme.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-3 border-t-2 border-black/10">
+                  <div>
+                    <div className="font-bold text-black">Dark Mode</div>
+                    <div className="text-xs text-black/60">Use dark interface</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="w-10 h-10 bg-black border-2 border-black flex items-center justify-center"><i className="ph ph-moon text-white"></i></button>
+                    <button className="w-10 h-10 bg-white border-2 border-black flex items-center justify-center"><i className="ph ph-sun text-black"></i></button>
+                  </div>
+                </div>
+              </div>
+            </SettingSection>
+            <SettingSection title="Security" icon="shield" color="#FFF500" delay={0.3}>
+              <Toggle label="Two-Factor Auth" description="Require SMS code" checked={security.mfa} onChange={v => setSecurity({ ...security, mfa: v })} />
+              <Toggle label="Auto-logout" description="After 30 min idle" checked={security.session} onChange={v => setSecurity({ ...security, session: v })} />
+              <Toggle label="Audit Logging" description="Track all actions" checked={security.audit} onChange={v => setSecurity({ ...security, audit: v })} />
+              <button className="w-full mt-2 py-3 border-3 border-[#FF1493] text-[#FF1493] font-bold uppercase hover:bg-[#FF1493] hover:text-white transition-colors">Change Password</button>
+            </SettingSection>
+            <SettingSection title="Language" icon="globe" color="#00FF00" delay={0.4}>
+              <div className="space-y-4">
+                <div>
+                  <div className="font-bold text-black mb-2">Interface Language</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[{ id: "en", name: "English", flag: "🇺🇸" }, { id: "zh", name: "中文", flag: "🇨🇳" }, { id: "ja", name: "日本語", flag: "🇯🇵" }, { id: "de", name: "Deutsch", flag: "🇩🇪" }].map(lang => (
+                      <button key={lang.id} className={`p-2 border-2 border-black text-left transition-all hover:scale-[1.02] ${lang.id === 'en' ? 'bg-[#00FFFF] text-black' : 'bg-white text-black hover:bg-black/5'}`}>
+                        <span className="mr-2">{lang.flag}</span>
+                        <span className="font-bold text-sm">{lang.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="pt-3 border-t-2 border-black/10">
+                  <div className="font-bold text-black mb-2">Timezone</div>
+                  <select className="w-full bg-black/5 border-3 border-black p-2 font-bold text-sm text-black focus:bg-white focus:outline-none">
+                    <option>UTC+08:00 Shanghai</option>
+                    <option>UTC+09:00 Tokyo</option>
+                    <option>UTC+00:00 London</option>
+                    <option>UTC-05:00 New York</option>
+                  </select>
+                </div>
+              </div>
+            </SettingSection>
+          </div>
+          <div className="bg-[#1a1a2e] border-4 border-white p-6 relative animate-slide-in-up" style={{animationDelay: '0.5s'}}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-[#FF1493] border-3 border-black flex items-center justify-center">
+                <i className="ph ph-database text-white text-xl"></i>
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white uppercase" style={{ fontFamily: "'Syne', sans-serif" }}>Data Management</h3>
+                <p className="text-xs text-white/60">Export or delete your account data</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <button className="p-4 bg-white border-3 border-black text-left hover:bg-[#00FFFF] transition-colors hover:scale-[1.02]">
+                <div className="font-bold text-black uppercase mb-1">Export Data</div>
+                <div className="text-xs text-black/60">Download JSON archive</div>
+              </button>
+              <button className="p-4 bg-white border-3 border-black text-left hover:bg-[#00FFFF] transition-colors hover:scale-[1.02]">
+                <div className="font-bold text-black uppercase mb-1">Backup</div>
+                <div className="text-xs text-black/60">Create manual backup</div>
+              </button>
+              <button className="p-4 bg-[#FF1493] border-3 border-black text-left hover:scale-[1.02] transition-transform">
+                <div className="font-bold text-white uppercase mb-1">Delete Account</div>
+                <div className="text-xs text-white/60">⚠️ Cannot be undone</div>
+              </button>
+            </div>
+            <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#FFF500] border-3 border-black" />
+          </div>
+        </div>
+      );
+    };
+
+    // Main App
+    const App = () => {
+      const [activePage, setActivePage] = useState("dashboard");
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => {
+        const timer = setTimeout(() => setLoading(false), 500);
+        return () => clearTimeout(timer);
+      }, []);
+
+      const pageTitles = {
+        dashboard: { title: "Command Center", subtitle: "v2.0.4" },
+        analytics: { title: "Analytics Hub", subtitle: "Real-time Data" },
+        users: { title: "User Management", subtitle: "1,247 Users" },
+        reports: { title: "Reports Center", subtitle: "48 Reports" },
+        settings: { title: "System Settings", subtitle: "Configuration" },
+      };
+
+      const currentTitle = pageTitles[activePage] || pageTitles.dashboard;
+
+      const renderPageContent = () => {
+        switch (activePage) {
+          case "dashboard": return <DashboardView />;
+          case "analytics": return <AnalyticsPanel />;
+          case "users": return <UsersPanel />;
+          case "reports": return <ReportsPanel />;
+          case "settings": return <SettingsPanel />;
+          default: return <DashboardView />;
+        }
+      };
+
+      if (loading) {
+        return <div className="fixed inset-0 bg-black flex items-center justify-center"><div className="text-[#00FFFF] font-mono text-2xl animate-pulse">INITIALIZING...</div></div>;
+      }
+
+      return (
+        <div className="min-h-screen bg-black">
+          <div className="fixed inset-0 bg-black z-[100] pointer-events-none animate-fade-out" style={{animation: 'fadeOut 0.5s ease-out 0.3s forwards'}} />
+          <style>{`@keyframes fadeOut { to { opacity: 0; } } @keyframes slideInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+
+          <SynthSidebar activeItem={activePage} onItemClick={setActivePage} />
+
+          <main className="ml-[250px] min-h-screen bg-black relative overflow-hidden">
+            <div className="absolute inset-0 opacity-5 pointer-events-none">
+              <div className="w-full h-full" style={{
+                backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+                backgroundSize: "50px 50px"
+              }} />
+            </div>
+
+            <div className="absolute top-32 right-10 pointer-events-none">
+              <div className="w-20 h-20 border-4 border-[#FF1493] rotate-45 animate-rotate-slow" />
+            </div>
+            <div className="absolute bottom-20 right-20 pointer-events-none">
+              <div className="w-16 h-16 bg-[#FFF500] rounded-full border-4 border-black animate-float" />
+            </div>
+            <div className="absolute top-1/2 right-5 pointer-events-none">
+              <div className="w-4 h-32 bg-[#00FFFF] border-2 border-black animate-pulse-glow" />
+            </div>
+
+            <header className="p-6 border-b-4 border-white/10 bg-black animate-flicker">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-[#FF1493] border-2 border-white flex items-center justify-center animate-scale-in" style={{animationDelay: '0.5s'}}>
+                    <span className="text-white font-black text-lg">◈</span>
+                  </div>
+                  <div>
+                    <h1 key={currentTitle.title} className="text-xl font-black text-white uppercase tracking-tight animate-slide-in-down" style={{ fontFamily: "'Syne', sans-serif", animation: 'slideInDown 0.3s ease-out' }}>{currentTitle.title}</h1>
+                    <p key={currentTitle.subtitle} className="text-white/40 text-xs font-mono">{currentTitle.subtitle}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <DigitalClock />
+                  <div className="flex gap-2">
+                    {["#FF1493", "#00FFFF", "#FFF500"].map((color, i) => (
+                      <div key={i} className="w-3 h-3 border border-white animate-scale-in" style={{ backgroundColor: color, animationDelay: `${0.8 + i * 0.1}s` }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            <div key={activePage} className="relative z-10">
+              {renderPageContent()}
+            </div>
+
+            <footer className="p-6 border-t-4 border-white/10 mt-8 animate-slide-in-up" style={{animationDelay: '2s'}}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="text-white/40 text-xs font-mono">MEMPHIS DESIGN SYSTEM // ANALOG SYNTH CONSOLE</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 animate-pulse-glow">
+                    <div className="w-2 h-2 bg-[#00FFFF] rounded-full" />
+                    <span className="text-[#00FFFF] text-xs font-mono">ONLINE</span>
+                  </div>
+                  <span className="text-white/40 text-xs font-mono">PING: 12ms</span>
+                </div>
+              </div>
+            </footer>
+          </main>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 </html>
