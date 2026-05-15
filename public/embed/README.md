@@ -35,8 +35,10 @@ public/embed/
 打开 `src/data/codeProjects.ts`，对应项目的 `iframeUrl` 应该是：
 
 ```ts
-iframeUrl: '/embed/frontend-001/'   // 注意末尾斜杠
+iframeUrl: '/embed/frontend-001/index.html'   // 显式带 index.html，dev/prod 都稳
 ```
+
+> 不要写 `/embed/frontend-001/`（不带文件名），Vite dev server 会把目录路径 fallback 到主站 SPA。
 
 ## 配套资源
 

@@ -22,7 +22,7 @@ export const codeProjects: CodeProject[] = [
     tags: ['HTML', 'CSS', 'JS'],
     cover: '/covers/frontend-001.webp',   // 没文件时会 fallback 到深色占位
     hoverVideo: '/previews/frontend-001.mp4',  // 没文件时不会播放，hover 也不会切换
-    iframeUrl: '/embed/frontend-001/',
+    iframeUrl: '/embed/frontend-001/index.html',
     wide: true,
   },
   {

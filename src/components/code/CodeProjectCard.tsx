@@ -49,6 +49,7 @@ export function CodeProjectCard({ project }: Props) {
   return (
     <div
       ref={cardRef}
+      id={project.id}
       className={`group cursor-pointer ${project.wide ? 'col-span-1 md:col-span-2' : 'col-span-1'}`}
       onClick={handleClick}
       onMouseEnter={handleEnter}
