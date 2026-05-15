@@ -60,7 +60,6 @@ export const webProjects: CodeProject[] = [
     cover: '/covers/frontend-005.webp',
     hoverVideo: '/previews/frontend-005.mp4',
     iframeUrl: '/embed/frontend-005/index.html',
-    wide: true,
   },
   {
     id: 'frontend-006',
@@ -70,6 +69,7 @@ export const webProjects: CodeProject[] = [
     cover: '/covers/frontend-006.webp',
     hoverVideo: '/previews/frontend-006.mp4',
     iframeUrl: '/embed/frontend-006/index.html',
+    wide: true,
   },
   {
     id: 'frontend-007',
