@@ -14,10 +14,9 @@ interface NavItem {
 const navItems: NavItem[] = [
   { id: 'about', label: 'About Me' },
   { id: 'works-index', label: 'Works' },
-  { id: 'work-modeling', label: 'Modeling', index: '01' },
-  { id: 'work-level', label: 'Level Design', index: '02' },
-  { id: 'work-vfx', label: 'Blueprint', index: '03' },
-  { id: 'work-stylized', label: 'Stylized', index: '04' },
+  { id: 'work-design', label: 'Design', index: '01' },
+  { id: 'work-game', label: 'Game', index: '02' },
+  { id: 'work-code', label: 'Code', index: '03' },
 ];
 
 export default function StickyNavigation() {
@@ -35,7 +34,7 @@ export default function StickyNavigation() {
     });
 
     // Track active section
-    const sections = ['portfolio', 'about', 'works-index', 'work-modeling', 'work-level', 'work-vfx', 'work-stylized'];
+    const sections = ['portfolio', 'about', 'works-index', 'work-design', 'work-game', 'work-code'];
     
     sections.forEach((sectionId) => {
       const element = document.getElementById(sectionId);

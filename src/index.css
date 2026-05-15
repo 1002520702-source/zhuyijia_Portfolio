@@ -161,22 +161,17 @@
     opacity: 0;
   }
   
-  /* Scrollbar Styling */
-  ::-webkit-scrollbar {
-    width: 6px;
+  /* 隐藏原生滚动条 (使用自定义 ScrollProgress 组件) */
+  html {
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* IE/Edge legacy */
   }
-  
-  ::-webkit-scrollbar-track {
-    background: var(--valiente-bg);
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: var(--valiente-gray);
-    border-radius: 3px;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--valiente-red);
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
   }
 }
 

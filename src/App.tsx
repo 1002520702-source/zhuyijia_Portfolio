@@ -15,6 +15,7 @@ import { IframeLightbox } from './components/code/IframeLightbox';
 import { CustomCursor } from './components/CustomCursor';
 import { SmoothScroll } from './components/SmoothScroll';
 import { Preloader } from './components/Preloader';
+import { ScrollProgress } from './components/ScrollProgress';
 
 import './App.css';
 
@@ -48,6 +49,7 @@ function App() {
     <LightboxProvider>
       <SmoothScroll />
       <CustomCursor />
+      <ScrollProgress />
       <Preloader />
       <IframeLightbox />
     <div className="relative bg-[#D1D1CB] min-h-screen">

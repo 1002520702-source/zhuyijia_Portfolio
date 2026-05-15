@@ -52,11 +52,8 @@ const workCategories: WorkCategory[] = [
     title: 'CODE',
     mobileTitle: ['CODE'],
     subItems: [
-      { id: 'code-001', label: '001 前端项目 001', targetId: 'frontend-001' },
-      { id: 'code-002', label: '002 前端项目 002', targetId: 'frontend-002' },
-      { id: 'code-003', label: '003 前端项目 003', targetId: 'frontend-003' },
-      { id: 'code-004', label: '004 前端项目 004', targetId: 'frontend-004' },
-      { id: 'code-005', label: '005 前端项目 005', targetId: 'frontend-005' },
+      { id: 'code-001', label: '001 网页设计', targetId: 'frontend-001' },
+      { id: 'code-002', label: '002 AI 交互界面', targetId: 'frontend-002' },
     ],
     targetId: 'work-code',
   },
