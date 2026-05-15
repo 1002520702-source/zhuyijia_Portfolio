@@ -165,13 +165,14 @@ function WorkItem({
         </div>
       </div>
 
-      {/* Dropdown Menu — absolute 定位，向下展开覆盖（不推动下方 work-item） */}
+      {/* Dropdown Menu — 锚定右侧空白区（不挡左侧大字标题，从右上向下展开） */}
       <div
-        className={`dropdown-menu absolute top-full left-0 right-0 z-30 bg-[#D1D1CB] overflow-hidden transition-all duration-300 ease-out
-                    ${isActive ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}
+        className={`dropdown-menu absolute z-30 bg-[#D1D1CB] overflow-hidden transition-all duration-300 ease-out
+                    left-1/2 right-20 top-1/2
+                    ${isActive ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}
         onMouseLeave={handleDropdownMouseLeave}
       >
-        <div className="pt-2 pb-6 pl-12 md:pl-20 space-y-3">
+        <div className="py-4 pl-8 space-y-3">
           {work.subItems.map((item, idx) => (
             <div
               key={item.id}
