@@ -19,10 +19,10 @@ export const codeProjects: CodeProject[] = [
     id: 'frontend-001',
     title: '前端项目 001',
     year: '2025',
-    tags: ['React', 'TypeScript', 'Vite'],
-    cover: '',
-    hoverVideo: '/videos/blender1.mp4',
-    iframeUrl: 'about:blank',
+    tags: ['HTML', 'CSS', 'JS'],
+    cover: '/covers/frontend-001.webp',   // 没文件时会 fallback 到深色占位
+    hoverVideo: '/previews/frontend-001.mp4',  // 没文件时不会播放，hover 也不会切换
+    iframeUrl: '/embed/frontend-001/',
     wide: true,
   },
   {
