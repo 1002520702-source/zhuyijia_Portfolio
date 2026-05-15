@@ -2,15 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 
 /**
  * 自定义鼠标光标
- * - 默认：8px 黑色小圆点
- * - hover 带 data-cursor="view" 的元素时：变成 60px 圆圈 + "VIEW" 文字
- * - 移动端（pointer: coarse）不渲染
+ * - 默认：8px 橙色小圆点（瞬时跟随）
+ * - hover 带 data-cursor="view" 的元素时：60px 橙色圆圈 + "VIEW"
+ * - 鼠标位置上有 iframe（即使被 overlay 遮挡）：隐藏自定义光标 + 恢复原生光标
  */
 export function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
   const [isTouch, setIsTouch] = useState(false);
-  const [variant, setVariant] = useState<'default' | 'view'>('default');
-  const [hidden, setHidden] = useState(true); // 鼠标进入页面前隐藏
+
+  // 用 ref 存状态，避免频繁 setState 触发 rerender
+  const stateRef = useRef({ variant: 'default', overIframe: false, hidden: true });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -23,80 +24,115 @@ export function CustomCursor() {
 
   useEffect(() => {
     if (isTouch) return;
-
     const el = cursorRef.current;
     if (!el) return;
 
-    // 用 transform 直接操作，性能比 setState 高
-    let raf = 0;
-    const pos = { x: 0, y: 0 };
-    const target = { x: 0, y: 0 };
+    // 全部用 DOM 操作（不走 React state）以获得最丝滑响应
+    const applyState = () => {
+      const { variant, overIframe, hidden } = stateRef.current;
+      const showCustom = !hidden && !overIframe;
+      el.style.opacity = showCustom ? '1' : '0';
+      el.style.width = variant === 'view' ? '64px' : '8px';
+      el.style.height = variant === 'view' ? '64px' : '8px';
+      el.dataset.variant = variant;
+      // 让出原生光标
+      document.documentElement.style.cursor = overIframe ? 'auto' : 'none';
+    };
 
+    let lastIframeCheck = 0;
     const onMove = (e: MouseEvent) => {
-      target.x = e.clientX;
-      target.y = e.clientY;
-      if (hidden) setHidden(false);
-    };
-
-    const tick = () => {
-      // 缓动跟随（lerp）
-      pos.x += (target.x - pos.x) * 0.25;
-      pos.y += (target.y - pos.y) * 0.25;
-      el.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0) translate(-50%, -50%)`;
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-
-    // 监听 mousemove
-    window.addEventListener('mousemove', onMove);
-
-    // 事件委托：监听整页 mouseover，根据 target 元素决定 variant
-    const onOver = (e: MouseEvent) => {
-      const t = e.target as HTMLElement;
-      if (t && t.closest('[data-cursor="view"]')) {
-        setVariant('view');
-      } else {
-        setVariant('default');
+      el.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+      if (stateRef.current.hidden) {
+        stateRef.current.hidden = false;
+        applyState();
+      }
+      // 节流检测当前位置是否有 iframe（最准的方法，能穿透 overlay）
+      const now = performance.now();
+      if (now - lastIframeCheck > 60) {
+        lastIframeCheck = now;
+        const els = document.elementsFromPoint(e.clientX, e.clientY);
+        const hasIframe = els.some((n) => (n as HTMLElement).tagName === 'IFRAME');
+        if (hasIframe !== stateRef.current.overIframe) {
+          stateRef.current.overIframe = hasIframe;
+          applyState();
+        }
       }
     };
-    document.addEventListener('mouseover', onOver);
 
-    // 鼠标离开窗口
-    const onLeave = () => setHidden(true);
+    const onOver = (e: MouseEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (!t) return;
+      const newVariant = t.closest('[data-cursor="view"]') ? 'view' : 'default';
+      if (newVariant !== stateRef.current.variant) {
+        stateRef.current.variant = newVariant;
+        applyState();
+      }
+    };
+
+    const onLeave = () => {
+      stateRef.current.hidden = true;
+      applyState();
+    };
+
+    // window 失焦（用户切到 iframe / 别的窗口）
+    const onBlur = () => {
+      stateRef.current.overIframe = true;
+      applyState();
+    };
+    const onFocus = () => {
+      stateRef.current.overIframe = false;
+      applyState();
+    };
+
+    window.addEventListener('mousemove', onMove, { passive: true });
+    document.addEventListener('mouseover', onOver);
     document.addEventListener('mouseleave', onLeave);
+    window.addEventListener('blur', onBlur);
+    window.addEventListener('focus', onFocus);
+
+    applyState();
 
     return () => {
-      cancelAnimationFrame(raf);
       window.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseover', onOver);
       document.removeEventListener('mouseleave', onLeave);
+      window.removeEventListener('blur', onBlur);
+      window.removeEventListener('focus', onFocus);
+      document.documentElement.style.cursor = '';
     };
-  }, [isTouch, hidden]);
+  }, [isTouch]);
 
   if (isTouch) return null;
 
   return (
     <>
-      {/* 隐藏原生光标 */}
       <style>{`
         @media (pointer: fine) {
-          html, body, * { cursor: none !important; }
+          html, body, * { cursor: inherit; }
+          iframe { cursor: auto !important; }
         }
       `}</style>
       <div
         ref={cursorRef}
-        className={`fixed top-0 left-0 z-[9999] pointer-events-none mix-blend-difference
-                    flex items-center justify-center rounded-full bg-white
-                    transition-[width,height,opacity] duration-200 ease-out
-                    ${hidden ? 'opacity-0' : 'opacity-100'}
-                    ${variant === 'view' ? 'w-16 h-16' : 'w-2 h-2'}`}
+        data-variant="default"
+        className="fixed top-0 left-0 z-[9999] pointer-events-none rounded-full bg-[#FF3D00]
+                   flex items-center justify-center
+                   transition-[width,height,opacity] duration-200 ease-out"
+        style={{ opacity: 0, width: 8, height: 8 }}
       >
-        {variant === 'view' && (
-          <span className="text-[10px] font-mono tracking-widest text-black mix-blend-normal select-none">
-            VIEW
-          </span>
-        )}
+        <span
+          className="text-[10px] font-mono tracking-widest text-white select-none opacity-0
+                     transition-opacity duration-200"
+          style={{ opacity: 'var(--cursor-text-opacity, 0)' as any }}
+        >
+          VIEW
+        </span>
       </div>
+      {/* 用 CSS 控制 VIEW 文字显示 */}
+      <style>{`
+        [data-variant="view"] > span { opacity: 1 !important; }
+        [data-variant="default"] > span { opacity: 0 !important; }
+      `}</style>
     </>
   );
 }
