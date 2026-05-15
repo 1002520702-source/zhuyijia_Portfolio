@@ -165,47 +165,36 @@ function WorkItem({
         </div>
       </div>
 
-      {/* Dropdown Menu — 锚定右侧空白区（不挡左侧大字标题，从右上向下展开） */}
+      {/* Dropdown Menu — grid-rows 0fr↔1fr 平滑展开 + 子项整体淡入（不抽搐） */}
       <div
-        className={`dropdown-menu absolute z-30 bg-[#D1D1CB] overflow-hidden transition-all duration-300 ease-out
-                    left-1/2 right-20 top-1/2
-                    ${isActive ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}
+        className="dropdown-menu grid transition-[grid-template-rows,opacity] ease-[cubic-bezier(0.22,1,0.36,1)] duration-500"
+        style={{
+          gridTemplateRows: isActive ? '1fr' : '0fr',
+          opacity: isActive ? 1 : 0,
+          pointerEvents: isActive ? 'auto' : 'none',
+        }}
         onMouseLeave={handleDropdownMouseLeave}
       >
-        <div className="py-4 pl-8 space-y-3">
-          {work.subItems.map((item, idx) => (
-            <div
-              key={item.id}
-              className="flex items-center gap-4 cursor-pointer group/item"
-              onClick={() => handleSubItemClick(item.targetId)}
-              style={{
-                animationDelay: `${idx * 50}ms`,
-                animation: isActive ? 'slideIn 0.3s ease forwards' : 'none'
-              }}
-            >
-              <span className="w-6 h-px bg-[#8A8A85]/50 group-hover/item:bg-[#FF3D00] transition-colors" />
-              <span className="body-mono text-[#8A8A85] group-hover/item:text-[#FF3D00] transition-colors">
-                <TextScrambleWithHover duration={0.5} speed={0.03} trigger={true}>
-                  {item.label}
-                </TextScrambleWithHover>
-              </span>
-            </div>
-          ))}
+        <div className="overflow-hidden">
+          <div className="pt-2 pb-6 pl-12 md:pl-20 space-y-3">
+            {work.subItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-4 cursor-pointer group/item"
+                onClick={() => handleSubItemClick(item.targetId)}
+              >
+                <span className="w-6 h-px bg-[#8A8A85]/50 group-hover/item:bg-[#FF3D00] transition-colors" />
+                <span className="body-mono text-[#8A8A85] group-hover/item:text-[#FF3D00] transition-colors">
+                  <TextScrambleWithHover duration={0.5} speed={0.03} trigger={true}>
+                    {item.label}
+                  </TextScrambleWithHover>
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <style>{`
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateX(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-      `}</style>
     </div>
   );
 }
