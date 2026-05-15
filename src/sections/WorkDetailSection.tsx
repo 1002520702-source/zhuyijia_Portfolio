@@ -3,6 +3,8 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { TextScrambleWithHover } from '@/components/ui/text-scramble';
 import { VideoPlayer } from '@/components/ui/video-player';
+import { CodeWorksGrid } from '@/components/code/CodeWorksGrid';
+import { codeProjects } from '@/data/codeProjects';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -586,18 +588,22 @@ function WorkCategorySection({
         </p>
       </div>
 
-      {/* Projects grid — wide cards span full width, others are 2-col */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-        {work.projects.map((project) => (
-          <ProjectCard key={project.id} project={project} onProjectClick={onProjectClick} />
-        ))}
-      </div>
+      {/* Projects grid — Code 区使用新组件，其他用 ProjectCard */}
+      {work.id === 'work-code' ? (
+        <CodeWorksGrid />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+          {work.projects.map((project) => (
+            <ProjectCard key={project.id} project={project} onProjectClick={onProjectClick} />
+          ))}
+        </div>
+      )}
 
       {/* Footer row */}
       <div className="mt-12 pt-8 border-t border-[#8A8A85]/20 flex justify-between items-center">
         <span className="section-label">
           <TextScrambleWithHover duration={0.5} speed={0.03} trigger={isInView}>
-            {String(work.projects.length) + ' Projects'}
+            {(work.id === 'work-code' ? codeProjects.length : work.projects.length) + ' Projects'}
           </TextScrambleWithHover>
         </span>
       </div>
@@ -622,6 +628,15 @@ function FilterBar({
   active: FilterKey;
   onChange: (key: FilterKey) => void;
 }) {
+  // 项目数量：从 workDetails 派生，Code 区使用 codeProjects
+  const counts: Record<FilterKey, number> = {
+    design: workDetails.find((w) => w.id === 'work-design')?.projects.length ?? 0,
+    game: workDetails.find((w) => w.id === 'work-game')?.projects.length ?? 0,
+    code: codeProjects.length,
+    all: 0,
+  };
+  counts.all = counts.design + counts.game + counts.code;
+
   return (
     <div className="px-4 sm:px-6 md:px-12 lg:px-24 py-6 md:py-8 border-b border-[#8A8A85]/20">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 sm:gap-6 flex-wrap">
@@ -634,6 +649,7 @@ function FilterBar({
           }`}
         >
           {label}
+          <span className="ml-1.5 text-[10px] opacity-60">({counts[key]})</span>
           {active === key && (
             <span className="absolute left-0 bottom-0 w-full h-[2px] bg-[#FF3D00]" />
           )}
